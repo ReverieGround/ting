@@ -118,3 +118,10 @@ out/
 
 # Firebase
 firebase-debug.log
+
+*.lock
+data_structure.md
+api_list.txt
+analysis_options.yaml
+
+test/widget_test.dart
