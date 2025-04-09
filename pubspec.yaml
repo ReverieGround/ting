@@ -107,3 +107,4 @@ flutter:
     - assets/login_icons/kakao_logo.png
     - assets/login_icons/naver_logo.png
     - assets/vibeyum_logo.png
+    - assets/recipe_dict_filtered.json

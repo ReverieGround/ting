@@ -4,6 +4,7 @@ import 'feed_page.dart';
 import 'register_page.dart';
 import 'feed_unfold_page.dart';
 import '../widgets/common/vibe_header.dart'; 
+import 'recipe_example/recipe_list_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -36,7 +37,9 @@ class LoginPageState extends State<LoginPage> {
         titleWidget: Text(
           '로그인',
           style:TextStyle(fontSize: 20, color: Colors.black, fontWeight: FontWeight.bold),
-      )),
+        ),
+        showBackButton: false,
+      ),
       body: Padding(
         padding: EdgeInsets.all(16.0),
         child: Column(

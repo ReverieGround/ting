@@ -7,6 +7,7 @@ import '../widgets/common/vibe_header.dart';
 import '../services/auth_service.dart'; 
 import '../config.dart'; 
 import 'post_page.dart';
+import 'recipe_example/recipe_list_page.dart';
 
 
 class FeedUnfoldPage extends StatefulWidget {
@@ -254,24 +255,36 @@ class _FeedUnfoldPageState extends State<FeedUnfoldPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: VibeHeader(
-        titleWidget: Text(
+        titleWidget: const Text(
           'VibeYum 피드',
-          style:TextStyle(fontSize: 20, color: Colors.black, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 20, color: Colors.black, fontWeight: FontWeight.bold),
         ),
         navigateType: VibeHeaderNavType.profilePage,
         showBackButton: false,
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
-          : allPosts.isNotEmpty ?
-            RefreshIndicator(
-              onRefresh: fetchAllFeeds,
-              child: ListView.builder(
-                itemCount: allPosts.length,
-                itemBuilder: (context, index) => buildPostCard(allPosts[index]),
-              ),
-            )
-            : Center(child: Text("No posts")),
+          : allPosts.isNotEmpty
+              ? RefreshIndicator(
+                  onRefresh: fetchAllFeeds,
+                  child: ListView.builder(
+                    itemCount: allPosts.length,
+                    itemBuilder: (context, index) => buildPostCard(allPosts[index]),
+                  ),
+                )
+              : const Center(child: Text("No posts")),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const RecipeListPage()),
+          );
+        },
+        label: const Text("요리하기", style: TextStyle(fontWeight: FontWeight.bold)),
+        icon: const Icon(Icons.restaurant_menu),
+        backgroundColor: Colors.deepOrangeAccent,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(36)),
+      ),
     );
   }
 }

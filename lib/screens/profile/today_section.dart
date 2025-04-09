@@ -5,67 +5,47 @@ import '../../config.dart';
 import '../../services/auth_service.dart';
 
 class TodaySection extends StatefulWidget {
-  const TodaySection({super.key});
-
+  final List<dynamic> posts;
+  const TodaySection({
+    super.key,
+    required this.posts,
+  });
   @override
   State<TodaySection> createState() => _TodaySectionState();
 }
 
 class _TodaySectionState extends State<TodaySection> {
   int? selectedIndex;
-  List<dynamic> posts = [];
   final ScrollController _scrollController = ScrollController(); // ✅ 추가
 
   @override
   void initState() {
     super.initState();
-    fetchPosts();
+    _initialize();
   }
 
-  Future<void> fetchPosts() async {
-    try {
-      final String? token = await AuthService.getToken();
-
-      if (token == null) {
-        print('토큰 없음');
-        return;
-      }
-
-      final response = await http.get(
-        Uri.parse('${Config.baseUrl}/post/myposts'),
-        headers: {
-          'Authorization': 'Bearer $token',
-        },
+  Future<void> _initialize() async {
+    setState(() {
+      selectedIndex = widget.posts.length - 1;
+    });
+    await Future.delayed(const Duration(milliseconds: 100)); // 빌드 대기
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
       );
-
-      if (response.statusCode == 200) {
-        // final data = json.decode(response.body);
-        final Map<String, dynamic> data = json.decode(response.body);
-        if (mounted) {
-          setState(() {
-            posts = data["posts"];
-            selectedIndex = posts.length - 1;
-          });
-
-          await Future.delayed(const Duration(milliseconds: 100)); // 빌드 대기
-          if (_scrollController.hasClients) {
-            _scrollController.animateTo(
-              _scrollController.position.maxScrollExtent,
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeOut,
-            );
-          }
-        }
-      } else {
-        print('포스트 불러오기 실패: ${response.statusCode}');
-      }
-    } catch (e) {
-      print('예외 발생: $e');
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final sortedPosts = [...widget.posts]; // 원본 변경 방지
+    sortedPosts.sort((a, b) {
+      final aTime = DateTime.tryParse(a['created_at'] ?? '') ?? DateTime(2000);
+      final bTime = DateTime.tryParse(b['created_at'] ?? '') ?? DateTime(2000);
+      return aTime.compareTo(bTime); // 오래된 → 최신 순 (최신이 오른쪽에!)
+    });
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -82,23 +62,24 @@ class _TodaySectionState extends State<TodaySection> {
         ),
         SizedBox(
           height: 110,
-          child: posts.isEmpty
+          child: sortedPosts.isEmpty
               ? const Center(child: CircularProgressIndicator())
               : ListView.separated(
                   controller: _scrollController, // ✅ 반드시 연결해야 작동함!
                   scrollDirection: Axis.horizontal,
                   padding: EdgeInsets.only(
-                    left: posts.length == 1 ? 20 : 0,
+                    left: sortedPosts.length == 1 ? 20 : 0,
                     right: 24,
                   ),
-                  itemCount: posts.length,
+                  itemCount: sortedPosts.length,
                   separatorBuilder: (_, __) => const SizedBox(width: 8),
                   itemBuilder: (_, index) {
                     final isSelected = selectedIndex == index;
                     final size = isSelected ? 110.0 : 80.0;
 
-                    final post = posts[index];
+                    final post = sortedPosts[index];
                     final List imageList = post['image_urls'] ?? [];
+                    
                     final String? imageUrl =
                         imageList.isNotEmpty ? imageList[0] : null;
 

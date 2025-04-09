@@ -10,7 +10,11 @@ import '../services/auth_service.dart';
 import '../config.dart';
 
 class CreatePostPage extends StatefulWidget {
-  const CreatePostPage({super.key});
+  // final Function? headerCallback;
+  const CreatePostPage({
+    super.key,
+    // this.headerCallback
+  });
 
   @override
   State<CreatePostPage> createState() => _CreatePostPageState();
@@ -19,7 +23,7 @@ class CreatePostPage extends StatefulWidget {
 class _CreatePostPageState extends State<CreatePostPage> {
   final PageController _pageController = PageController(viewportFraction: 0.75);
   int _currentIndex = 0;
-
+  bool isUploading = false;
   final List<String> mealNames = ['아침', '점심', '저녁'];
   final List<String> categories = ['요리', '밀키트', '식당', '배달'];
   final List<String> emojis = ['🔥 Fire', '😋 Tasty', '🤔 So-so', '😑 Womp'];
@@ -52,18 +56,49 @@ class _CreatePostPageState extends State<CreatePostPage> {
     }
   }
 
-  Future<void> uploadAllPosts() async {
+  Future<String?> uploadImage(File file) async {
     final token = await AuthService.getToken();
-    if (token == null) return;
+    if (token == null) return null;
+
+    final uri = Uri.parse('${Config.baseUrl}/post/upload_image');
+
+    final request = http.MultipartRequest('POST', uri)
+      ..headers['Authorization'] = 'Bearer $token'
+      ..files.add(await http.MultipartFile.fromPath('image', file.path)); // 여기 'file' 중요!
+
+    final response = await request.send();
+
+    if (response.statusCode == 200) {
+      final respStr = await response.stream.bytesToString();
+      final data = jsonDecode(respStr);
+      return data['image_url'];
+    } else {
+      print("업로드 실패: ${response.statusCode}");
+      return null;
+    }
+  }
+
+  Future<void> uploadAllPosts() async {
+    setState(() => isUploading = true); // 로딩 시작
+    bool uploaded = false;
+
+    final token = await AuthService.getToken();
+    if (token == null) {
+      setState(() => isUploading = false);
+      return;
+    }
 
     for (int i = 0; i < 3; i++) {
       final input = postInputs[i];
       if (input.imageFile == null || input.content.trim().isEmpty) continue;
 
+      final imageUrl = await uploadImage(input.imageFile!);
+      if (imageUrl == null) continue;
+
       final payload = {
         "title": "${mealNames[i]} 식사",
         "content": input.content,
-        "image_urls": jsonEncode(["https://via.placeholder.com/300"]), // TODO: 이미지 업로드 후 URL
+        "image_urls": [imageUrl],
         "visibility": "PUBLIC",
         "recipe_id": input.recommendRecipe ? "some-recipe-id" : null,
       };
@@ -77,9 +112,22 @@ class _CreatePostPageState extends State<CreatePostPage> {
         body: jsonEncode(payload),
       );
 
+      if (res.statusCode == 201) {
+        uploaded = true;
+      }
+
       print("[$i] 업로드 상태: ${res.statusCode}, 응답: ${res.body}");
     }
+
+    if (mounted) {
+      setState(() => isUploading = false); // 로딩 종료
+    }
+
+    if (uploaded && mounted) {
+      Navigator.pop(context, true);
+    }
   }
+
   Future<void> pickCustomDate(BuildContext context) async {
     DateTime tempPicked = selectedDate;
 
@@ -136,7 +184,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
     return Scaffold(
       appBar: VibeHeader(
         titleWidget: const Text(
-          "Yum Diary", 
+          "Upload Yum", 
           style:TextStyle(fontSize: 20, color: Colors.black, fontWeight: FontWeight.bold),
         )
       ),
@@ -200,10 +248,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
               },
             ),
           ),
-
-
           const SizedBox(height: 16),
-
           // ✅ 하단 입력 UI (항상 고정, 상태만 바뀜)
           Expanded(
             child: SingleChildScrollView(
@@ -213,7 +258,6 @@ class _CreatePostPageState extends State<CreatePostPage> {
                 children: [
                   // Text("${mealNames[_currentIndex]} 입력", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   // const SizedBox(height: 12),
-
                   // 카테고리
                   Wrap(
                     spacing: 8,

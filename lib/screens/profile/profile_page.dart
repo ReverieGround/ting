@@ -28,12 +28,15 @@ class _ProfilePageState extends State<ProfilePage> {
   String? jwtToken;
   bool isEditable = false;
   bool isSaving = false; // 클래스 상단에 추가
+  bool isLoading = false; 
+  List<dynamic> posts = [];
   final TextEditingController statusMessageController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _initTokenAndUser();
+    _fetchPosts();
   }
 
   Future<void> _initTokenAndUser() async {
@@ -85,7 +88,42 @@ class _ProfilePageState extends State<ProfilePage> {
       print('❌ 프로필 이미지 업로드 실패');
     }
   }
+
+
+  Future<void> _fetchPosts() async {
+    try {
+      final String? token = await AuthService.getToken();
+      if (token == null) {
+        print('토큰 없음');
+        return;
+      }
+      final response = await http.get(
+        Uri.parse('${Config.baseUrl}/post/myposts'),
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
+      );
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        if (mounted) {
+          setState(() {
+            posts = data["posts"];
+          });
+        }
+      } else {
+        print('포스트 불러오기 실패: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('예외 발생: $e');
+    }
+  }
   
+  void _fetchPostsWithLoading() async {
+    setState(() => isLoading = true);
+    await _fetchPosts();
+    setState(() => isLoading = false);
+  }
+
   @override
   Widget build(BuildContext context) {
     if (userInfo == null) {
@@ -110,6 +148,7 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
         navigateType: VibeHeaderNavType.createPost,
         showBackButton: widget.userId != null,
+        headerCallback: _fetchPosts,
       ),
       body: SafeArea(
         child: Column(
@@ -119,10 +158,10 @@ class _ProfilePageState extends State<ProfilePage> {
             _buildStatusMessage(),
             // _buildStats(),
             // _buildFollowInfo(),
-            TodaySection(),
+            TodaySection(posts: posts),
             // PickSection(),
             SizedBox(height: 12),
-            Expanded(child: TabSection()),
+            Expanded(child: TabSection(posts: posts)),
           ],
         ),
       ),

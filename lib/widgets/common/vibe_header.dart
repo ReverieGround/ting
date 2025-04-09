@@ -21,12 +21,14 @@ class VibeHeader extends StatelessWidget implements PreferredSizeWidget {
   final Widget titleWidget;
   final bool showBackButton;
   final VibeHeaderNavType? navigateType; // nullable
+  final Function? headerCallback; 
 
   const VibeHeader({
     super.key,
     required this.titleWidget,
     this.navigateType,
     this.showBackButton = true,
+    this.headerCallback, 
   });
 
   /// 액션 아이콘 반환
@@ -70,10 +72,13 @@ class VibeHeader extends StatelessWidget implements PreferredSizeWidget {
   Future<void> _navigate(BuildContext context) async {
     if (navigateType == null) return;
     final page = _buildPageForNavigation();
-    await Navigator.push(
+    final result = await Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => page),
     );
+    if (result == true && headerCallback != null) {
+      headerCallback!(); // ✅ 이렇게 함수처럼 호출해야 실행됨!
+    }
   }
 
   @override

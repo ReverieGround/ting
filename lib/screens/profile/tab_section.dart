@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'content_grid.dart';
-
+import 'yum_grid.dart';
+ 
 class TabSection extends StatefulWidget {
-  const TabSection({super.key});
+  final List<dynamic> posts;
+  const TabSection({
+    super.key,
+    required this.posts,
+  });
 
   @override
   State<TabSection> createState() => _TabSectionState();
@@ -61,8 +66,8 @@ class _TabSectionState extends State<TabSection> with TickerProviderStateMixin {
           Expanded(
             child: TabBarView(
               controller: _controller,
-              children: const [
-                ContentGrid(type: 'yum'),
+              children: [
+                YumGrid(posts: widget.posts),
                 ContentGrid(type: 'recipe'),
                 ContentGrid(type: 'guestbook'),
               ],
