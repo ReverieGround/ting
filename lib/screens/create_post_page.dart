@@ -112,7 +112,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
         body: jsonEncode(payload),
       );
 
-      if (res.statusCode == 201) {
+      if (res.statusCode == 200) {
         uploaded = true;
       }
 
@@ -188,7 +188,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
           style:TextStyle(fontSize: 20, color: Colors.black, fontWeight: FontWeight.bold),
         )
       ),
-      body: Column(
+      body: SingleChildScrollView(child: Column(
         children: [
           const SizedBox(height: 16),
           GestureDetector(
@@ -250,12 +250,11 @@ class _CreatePostPageState extends State<CreatePostPage> {
           ),
           const SizedBox(height: 16),
           // ✅ 하단 입력 UI (항상 고정, 상태만 바뀜)
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                   // Text("${mealNames[_currentIndex]} 입력", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   // const SizedBox(height: 12),
                   // 카테고리
@@ -343,7 +342,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
                 ],
               ),
             ),
-          ),
+          
 
           // ✅ 업로드 버튼
           Padding(
@@ -351,17 +350,30 @@ class _CreatePostPageState extends State<CreatePostPage> {
             child: SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: uploadAllPosts,
+                onPressed: isUploading ? null : uploadAllPosts, // ⛔ 업로드 중이면 눌리지 않도록
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.black,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                child: const Text('업로드하기', style: TextStyle(color: Colors.white, fontSize: 16)),
+                child: isUploading
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Text(
+                        '업로드하기',
+                        style: TextStyle(color: Colors.white, fontSize: 16),
+                      ),
               ),
             ),
           ),
         ],
+      ),
       ),
     );
   }

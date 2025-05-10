@@ -5,6 +5,8 @@ import 'register_page.dart';
 import 'feed_unfold_page.dart';
 import '../widgets/common/vibe_header.dart'; 
 import 'recipe_example/recipe_list_page.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:local_auth/local_auth.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -16,9 +18,48 @@ class LoginPage extends StatefulWidget {
 class LoginPageState extends State<LoginPage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final LocalAuthentication _localAuth = LocalAuthentication();
+  bool _rememberMe = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _tryBiometricLogin();
+  }
+
+  Future<void> _tryBiometricLogin() async {
+    final bioToken = await AuthService.getBioToken();
+    if (bioToken == null) {
+      return;
+    }
+    final hasBiometrics = await _localAuth.canCheckBiometrics;
+    final isDeviceSupported = await _localAuth.isDeviceSupported();
+
+    if (!hasBiometrics || !isDeviceSupported) return;
+
+    final didAuthenticate = await _localAuth.authenticate(
+      localizedReason: '바이오 인증으로 자동 로그인',
+      options: const AuthenticationOptions(biometricOnly: true),
+    );
+
+    if (didAuthenticate) {
+      final success = await AuthService.verifyBioToken();
+      if (success) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const FeedUnfoldPage()),
+        );
+      }
+    }
+  }
 
   Future<void> login() async {
-    bool success = await AuthService.login(emailController.text, passwordController.text);
+    bool success = await AuthService.login(
+      emailController.text, 
+      passwordController.text,
+      rememberMe: _rememberMe,
+    );
+
     if (success) {
       Navigator.pushReplacement(
         context,
@@ -40,7 +81,8 @@ class LoginPageState extends State<LoginPage> {
         ),
         showBackButton: false,
       ),
-      body: Padding(
+      body:  SafeArea(
+      child: SingleChildScrollView(child: Padding(
         padding: EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -95,7 +137,18 @@ class LoginPageState extends State<LoginPage> {
                 ),
                 obscureText: true,
               ),
-              SizedBox(height: 20),
+              SizedBox(height: 5),
+              CheckboxListTile(
+                value: _rememberMe,
+                onChanged: (value) {
+                  setState(() {
+                    _rememberMe = value ?? false;
+                  });
+                },
+                title: Text("로그인 기억하기"),
+                controlAffinity: ListTileControlAffinity.leading,
+              ),
+              SizedBox(height: 5),
               // ✅ 로그인 버튼 (가로 전체 너비)
               SizedBox(
                 width: double.infinity,
@@ -147,7 +200,8 @@ class LoginPageState extends State<LoginPage> {
                 child: Text('간편 회원가입 하기', style: TextStyle(fontSize: 16, color: Colors.black)),
               ),
             ),
-            Spacer(), // ✅ 아래쪽 여백 자동 조정
+            // Spacer(), // ✅ 아래쪽 여백 자동 조정
+            SizedBox(height: 20),
 
             // ✅ "아이디 찾기 / 비밀번호 찾기"
             Row(
@@ -161,6 +215,8 @@ class LoginPageState extends State<LoginPage> {
             SizedBox(height: 20), // ✅ 하단 여백 추가
           ],
         ),
+      ),
+      ),
       ),
     );
   }

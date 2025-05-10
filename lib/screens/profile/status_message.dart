@@ -140,7 +140,7 @@ class _StatusMessageState extends State<StatusMessage> {
                       hintText: '상태 메시지를 입력하세요',
                       hintStyle: TextStyle(
                         fontSize: 14,
-                        color: Color(0xFF3E3E3E),
+                        color: Color.fromARGB(255, 147, 147, 147),
                         fontWeight: FontWeight.w400,
                       ),
                     ),
@@ -149,12 +149,13 @@ class _StatusMessageState extends State<StatusMessage> {
                 : Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      widget.message,
+                      widget.message.isNotEmpty ? widget.message : "첫 상태 메시지를 입력하러가기 --->",
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
-                        color: Color(0xFF3E3E3E),
+                        color: Color.fromARGB(255, 112, 112, 112),
                         fontWeight: FontWeight.w400,
+                        fontStyle: widget.message.isNotEmpty ? FontStyle.normal : FontStyle.italic,
                       ),
                     ),
                   ),

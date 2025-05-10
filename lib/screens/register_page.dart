@@ -56,7 +56,7 @@ class _RegisterPageState extends State<RegisterPage> {
   /// ✅ 프로필 이미지 업로드 (Firebase Storage)
   Future<String?> uploadProfileImage(File imageFile) async {
     var request = http.MultipartRequest('POST', Uri.parse('${Config.baseUrl}/user/upload_image'));
-    request.files.add(await http.MultipartFile.fromPath('file', imageFile.path));
+    request.files.add(await http.MultipartFile.fromPath('image', imageFile.path));
 
     var response = await request.send();
     if (response.statusCode == 200) {
@@ -73,7 +73,10 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   bool isValidPassword(String password) {
-    return RegExp(r'^(?=.*[a-z])(?=.*[0-9])(?=.*[!@#\$&*~]).{8,}$').hasMatch(password);
+    // return RegExp(r'^(?=.*[a-z])(?=.*[0-9])(?=.*[!@#\$&*~]).{8,}$').hasMatch(password);
+    final lowercaseMatches = RegExp(r'[a-z]').allMatches(password).length;
+    final numberMatches = RegExp(r'[0-9]').allMatches(password).length;
+    return (lowercaseMatches + numberMatches) >= 4;
   }
 
   /// ✅ 사용자 등록
@@ -88,7 +91,8 @@ class _RegisterPageState extends State<RegisterPage> {
 
 
     if (!isValidPassword(password)) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('비밀번호는 소문자, 숫자, 특수문자를 포함해야 합니다.')));
+      // ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('비밀번호는 소문자, 숫자, 특수문자를 포함해야 합니다.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('비밀번호는 소문자를 포함해야 합니다.')));
       setState(() => isRegistering = false);
       return;
     }
@@ -198,7 +202,8 @@ Widget build(BuildContext context) {
                         return null ;
                       }
                       if (!isValidPassword(value)) {
-                        return "비밀번호는 최소 8자, 소문자, 숫자, 특수문자를 포함해야 합니다.";
+                        // return "비밀번호는 최소 8자, 소문자, 숫자, 특수문자를 포함해야 합니다.";
+                        return "비밀번호는 최소 8자, 소문자를 포함해야 합니다.";
                       }
                       return null;
                     },

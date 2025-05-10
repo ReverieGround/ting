@@ -1,10 +1,5 @@
 import 'package:flutter/material.dart';
-import 'config.dart';
 import 'screens/splash_screen.dart';
-import 'screens/login_page.dart';
-import 'screens/feed_page.dart';
-import 'screens/create_post_page.dart';
-import 'services/auth_service.dart';
 import 'theme/app_theme.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 

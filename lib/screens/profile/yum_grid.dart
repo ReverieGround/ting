@@ -53,7 +53,9 @@ class _YumGridState extends State<YumGrid> {
     final sortedKeys = groupedPosts.keys.toList()
       ..sort((a, b) => b.compareTo(a));
     
-    return ListView.builder(
+    return widget.posts.isEmpty ? 
+      const Center(child: Text("No posts", style: TextStyle(color: Color.fromARGB(243, 150, 150, 150), fontSize: 14)))
+      : ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: sortedKeys.length,
       itemBuilder: (context, index) {

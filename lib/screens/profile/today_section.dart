@@ -63,7 +63,7 @@ class _TodaySectionState extends State<TodaySection> {
         SizedBox(
           height: 110,
           child: sortedPosts.isEmpty
-              ? const Center(child: CircularProgressIndicator())
+              ? const Center(child: Text("No posts", style: TextStyle(color: Color.fromARGB(243, 150, 150, 150), fontSize: 14)))
               : ListView.separated(
                   controller: _scrollController, // ✅ 반드시 연결해야 작동함!
                   scrollDirection: Axis.horizontal,
