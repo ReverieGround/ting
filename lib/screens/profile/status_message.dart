@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-
-import '../../config.dart';
-import '../../services/auth_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class StatusMessage extends StatefulWidget {
   final String message;
@@ -34,7 +31,7 @@ class _StatusMessageState extends State<StatusMessage> {
     final String newMessage = _controller.text.trim();
 
     if (newMessage == widget.message.trim()) {
-      // ✅ 변경 없음 → 그냥 닫기
+      // 변경 없음 → 그냥 닫기
       setState(() {
         isEditing = false;
         isSaving = false;
@@ -42,25 +39,21 @@ class _StatusMessageState extends State<StatusMessage> {
       return;
     }
 
-    final String? token = await AuthService.getToken();
-    if (token == null) {
-      print("❌ JWT 토큰 없음");
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      debugPrint("❌ 로그인된 사용자 없음");
       return;
     }
 
     setState(() => isSaving = true);
 
-    final response = await http.patch(
-      Uri.parse('${Config.baseUrl}/user/me'),
-      headers: {
-        "Authorization": "Bearer $token",
-        "Content-Type": "application/json"
-      },
-      body: json.encode({"status_message": newMessage}),
-    );
+    try {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .update({'status_message': newMessage});
 
-    if (response.statusCode == 200) {
-      print("✅ 상태 메시지 서버에 저장 완료");
+      debugPrint("✅ Firestore에 상태 메시지 저장 완료");
 
       if (widget.onMessageUpdated != null) {
         widget.onMessageUpdated!(newMessage);
@@ -70,20 +63,20 @@ class _StatusMessageState extends State<StatusMessage> {
         isSaving = false;
         isEditing = false;
       });
-    } else {
-      print("❌ 상태 메시지 저장 실패: ${response.statusCode}");
+    } catch (e) {
+      debugPrint("❌ Firestore 상태 메시지 저장 실패: $e");
       setState(() => isSaving = false);
     }
   }
-
+  
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(left: 20, right: 0),
+      padding: const EdgeInsets.only(left: 20, right: 0, top: 0 , bottom: 0),
       child: Row(children: [
         // ✅ 왼쪽 동그라미 2개
         Container(
-          height: 36,
+          height: 30,
           padding: EdgeInsets.zero,
           margin: EdgeInsets.zero,
           child: Align(
@@ -91,9 +84,13 @@ class _StatusMessageState extends State<StatusMessage> {
             child: Container(
               width: 8,
               height: 8,
-              decoration: const BoxDecoration(
-                color: Color(0xFFF5F5F5),
+              decoration: BoxDecoration(
+                color: Colors.white,
                 shape: BoxShape.circle,
+                // border: Border.all(
+                //   color: Colors.black38,
+                //   width: 0.5,
+                // ),
               ),
             ),
           ),
@@ -102,9 +99,13 @@ class _StatusMessageState extends State<StatusMessage> {
         Container(
           width: 16,
           height: 16,
-          decoration: const BoxDecoration(
-            color: Color(0xFFF5F5F5),
+          decoration: BoxDecoration(
+            color: Colors.white,
             shape: BoxShape.circle,
+            // border: Border.all(
+            //   color: Colors.black38,
+            //   width: 0.5,
+            // ),
           ),
         ),
         const SizedBox(width: 7),
@@ -112,11 +113,15 @@ class _StatusMessageState extends State<StatusMessage> {
         // ✅ 메시지 영역
         Expanded(
           child: Container(
-            height: 36,
+            height: 30,
             padding: const EdgeInsets.symmetric(horizontal: 12),
             decoration: BoxDecoration(
-              color: const Color(0xFFF5F5F5),
+              color: Colors.white,
               borderRadius: BorderRadius.circular(10),
+              // border: Border.all(
+              //     color: Colors.black38,
+              //     width: 0.5,
+              //   ),
             ),
             child: isEditing
                 ? Align(
@@ -135,7 +140,7 @@ class _StatusMessageState extends State<StatusMessage> {
                     decoration: const InputDecoration(
                       isDense: true,
                       contentPadding: EdgeInsets.symmetric(vertical: 7), // ✅ 핵심 포인트!
-                      fillColor: Color(0xFFF5F5F5),
+                      fillColor: Colors.white,
                       border: InputBorder.none,
                       hintText: '상태 메시지를 입력하세요',
                       hintStyle: TextStyle(
@@ -149,11 +154,11 @@ class _StatusMessageState extends State<StatusMessage> {
                 : Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      widget.message.isNotEmpty ? widget.message : "첫 상태 메시지를 입력하러가기 --->",
+                      widget.message.isNotEmpty ? widget.message : "첫 상태 메시지를 입력하세요.",
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: 14,
-                        color: Color.fromARGB(255, 112, 112, 112),
+                        color: widget.message.isNotEmpty ? Colors.black : Color.fromARGB(255, 112, 112, 112),
                         fontWeight: FontWeight.w400,
                         fontStyle: widget.message.isNotEmpty ? FontStyle.normal : FontStyle.italic,
                       ),

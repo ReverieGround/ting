@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'dart:io';
-
-import '../../config.dart';
-import '../../services/auth_service.dart';
-import '../../widgets/common/vibe_header.dart';
-
 import 'today_section.dart';
-import 'pick_section.dart';
 import 'tab_section.dart';
 import 'status_message.dart';
+
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+
+import '../../widgets/common/vibe_header.dart';
 import '../../widgets/utils/profile_avatar.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -35,36 +33,44 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   void initState() {
     super.initState();
-    _initTokenAndUser();
-    _fetchPosts();
-  }
-
-  Future<void> _initTokenAndUser() async {
-    jwtToken = await AuthService.getToken();
-    await _loadUserInfo();
+    _loadUserInfo();
+    _fetchPostsFromFirestore();
   }
 
   Future<void> _loadUserInfo() async {
-    if (jwtToken == null) return;
+    try {
+      String? targetUserId = widget.userId;
 
-    final url = widget.userId == null
-        ? '${Config.baseUrl}/user/me'
-        : '${Config.baseUrl}/user/${widget.userId}';
+      // 현재 로그인한 사용자 UID 가져오기
+      if (targetUserId == null) {
+        final currentUser = FirebaseAuth.instance.currentUser;
+        if (currentUser == null) {
+          debugPrint('❌ 로그인한 유저 없음');
+          return;
+        }
+        targetUserId = currentUser.uid;
+      }
 
-    final response = await http.get(
-      Uri.parse(url),
-      headers: {"Authorization": "Bearer $jwtToken"},
-    );
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(targetUserId)
+          .get();
 
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      setState(() {
-        userInfo = UserInfo.fromJson(data);
-        // isEditable = widget.userId == null;
-        statusMessageController.text = userInfo?.statusMessage ?? '';
-      });
-    } else {
-      print('❌ 사용자 정보를 불러오는데 실패했습니다');
+      if (!doc.exists) {
+        debugPrint('❌ 사용자 문서가 존재하지 않음');
+        return;
+      }
+
+      final data = doc.data();
+      if (mounted) {
+        setState(() {
+          userInfo = UserInfo.fromJson(data!);
+          statusMessageController.text = userInfo?.statusMessage ?? '';
+          // isEditable = widget.userId == null; // ✅ 필요 시 복원
+        });
+      }
+    } catch (e) {
+      debugPrint('❌ Firestore에서 사용자 정보 불러오기 실패: $e');
     }
   }
 
@@ -74,56 +80,67 @@ class _ProfilePageState extends State<ProfilePage> {
 
     if (picked == null) return;
 
-    var request = http.MultipartRequest(
-        'POST', Uri.parse('${Config.baseUrl}/user/upload_image'));
-    request.headers['Authorization'] = 'Bearer $jwtToken';
-    request.files.add(await http.MultipartFile.fromPath('file', picked.path));
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        debugPrint("❌ 로그인된 사용자 없음");
+        return;
+      }
 
-    final res = await request.send();
+      final fileName =
+          'profile_images/${user.uid}_${DateTime.now().millisecondsSinceEpoch}_${picked.name}';
+      final ref = FirebaseStorage.instance.ref().child(fileName);
 
-    if (res.statusCode == 200) {
-      print('✅ 프로필 이미지 업로드 성공');
-      _loadUserInfo();
-    } else {
-      print('❌ 프로필 이미지 업로드 실패');
+      await ref.putFile(File(picked.path));
+      final downloadUrl = await ref.getDownloadURL();
+
+      // ✅ Firestore의 사용자 문서 업데이트
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .update({'profile_image': downloadUrl});
+
+      debugPrint('✅ 프로필 이미지 업로드 및 Firestore 업데이트 성공');
+      _loadUserInfo(); // Firestore에서 바로 다시 불러오기
+    } catch (e) {
+      debugPrint('❌ 이미지 업로드 실패: $e');
     }
   }
 
-
-  Future<void> _fetchPosts() async {
+  Future<void> _fetchPostsFromFirestore() async {
     try {
-      final String? token = await AuthService.getToken();
-      if (token == null) {
-        print('토큰 없음');
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        debugPrint("❌ 로그인된 유저가 없습니다.");
         return;
       }
-      final response = await http.get(
-        Uri.parse('${Config.baseUrl}/post/myposts'),
-        headers: {
-          'Authorization': 'Bearer $token',
-        },
-      );
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(response.body);
-        if (mounted) {
-          setState(() {
-            posts = data["posts"];
-          });
-        }
-      } else {
-        print('포스트 불러오기 실패: ${response.statusCode}');
+
+      final snapshot = await FirebaseFirestore.instance
+          .collection("posts")
+          .where("user_id", isEqualTo: user.uid)
+          .where("archived", isEqualTo: false)
+          .orderBy("created_at", descending: true)
+          .limit(50)
+          .get();
+
+      final postList = snapshot.docs.map((doc) => doc.data()).toList();
+      print(postList);
+      if (mounted) {
+        setState(() {
+          posts = postList;
+        });
       }
     } catch (e) {
-      print('예외 발생: $e');
+      debugPrint("❌ Firestore에서 포스트 불러오기 실패: $e");
     }
   }
   
   void _fetchPostsWithLoading() async {
     setState(() => isLoading = true);
-    await _fetchPosts();
+    await _fetchPostsFromFirestore();
     setState(() => isLoading = false);
   }
-
+  
   @override
   Widget build(BuildContext context) {
     if (userInfo == null) {
@@ -132,48 +149,147 @@ class _ProfilePageState extends State<ProfilePage> {
 
     return Scaffold(
       appBar: VibeHeader(
-        titleWidget: Row(
-          children: [
-            ProfileAvatar(
-                profileUrl: userInfo!.profileImage!,
-                size: 30,
-            ),
-            SizedBox(width: 12),
-            Text(userInfo!.nickname,
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
-            SizedBox(width: 12),
-            Text(userInfo!.location,
-                style: TextStyle(fontSize: 12, color: Color(0xFF9B9B9B))),
-          ],
+        backgroundColor: Color.fromARGB(255, 245, 245, 245),
+        titleWidget: Container(
+          margin: EdgeInsets.only(top: 5),
+          child: Row(
+            children: [
+              GestureDetector(
+                onTap: () {
+                  showModalBottomSheet(
+                    context: context,
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(16),
+                        topRight: Radius.circular(16),
+                        bottomLeft: Radius.zero,
+                        bottomRight: Radius.zero,
+                      ),
+                    ),
+                    backgroundColor: Colors.white,
+                    builder: (_) => _buildProfileImagePicker(context));
+                },
+                child: ProfileAvatar(
+                    profileUrl: userInfo!.profileImage!,
+                    size: 43,
+                ),
+              ),
+              SizedBox(width: 12),
+              Container(
+                padding: EdgeInsets.zero,
+                margin: EdgeInsets.zero,
+                height: 45,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children:[
+                    Text(userInfo!.nickname, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+                    Text(userInfo!.userTitle ?? '', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w400, color: Colors.black)),
+                  ]
+                ),
+              ),
+              // SizedBox(width: 12),
+              // Text(userInfo!.location,
+              //     style: TextStyle(fontSize: 12, color: Color(0xFF9B9B9B))),
+            ],
+          ),
         ),
         navigateType: VibeHeaderNavType.createPost,
         showBackButton: widget.userId != null,
-        headerCallback: _fetchPosts,
+        headerCallback: _fetchPostsFromFirestore,
       ),
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildUserTitle(),
-            _buildStatusMessage(),
-            // _buildStats(),
-            // _buildFollowInfo(),
-            TodaySection(posts: posts),
-            // PickSection(),
-            SizedBox(height: 12),
-            Expanded(child: TabSection(posts: posts)),
-          ],
+      body: Container(
+        color: Color.fromARGB(255, 245, 245, 245),
+        child: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildStatusMessage(),
+              // _buildStats(),
+              // _buildFollowInfo(),
+              Container(
+                color: const Color.fromARGB(255, 245, 245, 245),
+                child: TodaySection(posts: posts)),
+              // PickSection(),
+              Expanded(child: TabSection(posts: posts)),
+            ],
+          ),
         ),
       ),
     );
   }
   
-  Widget _buildUserTitle() {
+  Widget _buildProfileImagePicker(BuildContext context) {
+    
+    const avatarList = [
+      'https://firebasestorage.googleapis.com/v0/b/vibeyum-alpha.firebasestorage.app/o/profile_images%2Favatar-design.png?alt=media&token=f34a16cd-689d-464f-9c45-3859c66be0c0',
+      'https://firebasestorage.googleapis.com/v0/b/vibeyum-alpha.firebasestorage.app/o/profile_images%2Fbusinesswoman.png?alt=media&token=6fa85751-6fff-42e2-91d9-32d114167352',
+      'https://firebasestorage.googleapis.com/v0/b/vibeyum-alpha.firebasestorage.app/o/profile_images%2Fprogrammer.png?alt=media&token=ed21ed93-f845-42b9-8ec4-6d47f6e2650c',
+      'https://firebasestorage.googleapis.com/v0/b/vibeyum-alpha.firebasestorage.app/o/profile_images%2Fwoman%20(1).png?alt=media&token=4494aa07-e112-489e-b053-7555d483c02c',
+      'https://firebasestorage.googleapis.com/v0/b/vibeyum-alpha.firebasestorage.app/o/profile_images%2Fwoman.png?alt=media&token=4acd3f2f-3a19-4289-858e-e9fe929b5e91',
+    ];
+
     return Padding(
-      padding: const EdgeInsets.only(left: 20, top: 8, bottom: 4),
-      child: Text(
-        userInfo?.userTitle ?? '',
-        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w400),
+      padding: const EdgeInsets.all(16),
+      child: Container(
+        color: Colors.white,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text('프로필 사진 선택', style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16, color: Colors.black)),
+                InkWell(
+                  onTap: () async {
+                    Navigator.pop(context);
+                    await _uploadProfileImage();
+                  },
+                  borderRadius: BorderRadius.circular(24),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade200,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.photo_library, color: Colors.black87),
+                  ),
+                )
+              ]
+            ),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: avatarList.map((url) {
+                return GestureDetector(
+                  onTap: () async {
+                    final user = FirebaseAuth.instance.currentUser;
+                    if (user != null) {
+                      await FirebaseFirestore.instance
+                          .collection('users')
+                          .doc(user.uid)
+                          .update({'profile_image': url});
+                      Navigator.pop(context);
+                      _loadUserInfo(); // 사용자 정보 갱신
+                    }
+                  },
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.network(
+                      url,
+                      width: 60,
+                      height: 60,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'dart:io'; 
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class YumGrid extends StatefulWidget {
   final List<dynamic> posts;
@@ -33,18 +33,28 @@ class _YumGridState extends State<YumGrid> {
 
   Map<String, List<dynamic>> groupPostsByDay(List<dynamic> posts) {
     final Map<String, List<dynamic>> grouped = {};
-
     for (var post in posts) {
       final hasImages = post['image_urls'] is List && (post['image_urls'] as List).isNotEmpty;
-      if (hasImages){
-        final createdAt = HttpDate.parse(post['created_at']);
-        final dateKey = '${createdAt.year}-${createdAt.month.toString().padLeft(2, '0')}-${createdAt.day.toString().padLeft(2, '0')}';
-        if (!grouped.containsKey(dateKey)) {
-          grouped[dateKey] = [];
+      if (hasImages) {
+        final rawCreatedAt = post['created_at'];
+        DateTime createdAt;
+
+        // 🔐 타입 체크 후 안전하게 DateTime으로 변환
+        if (rawCreatedAt is Timestamp) {
+          createdAt = rawCreatedAt.toDate();
+        } else if (rawCreatedAt is String) {
+          createdAt = DateTime.parse(rawCreatedAt);
+        } else {
+          // 예외 처리 또는 continue
+          debugPrint("❌ 알 수 없는 created_at 타입: $rawCreatedAt");
+          continue;
         }
-        grouped[dateKey]!.add(post);
+
+        final dateKey = '${createdAt.year}-${createdAt.month.toString().padLeft(2, '0')}-${createdAt.day.toString().padLeft(2, '0')}';
+        grouped.putIfAbsent(dateKey, () => []).add(post);
       }
     }
+
     return grouped;
   }
 
@@ -66,7 +76,7 @@ class _YumGridState extends State<YumGrid> {
           children: [
             Padding(
               padding: const EdgeInsets.only(left: 4.0),
-              child: Text(date, style: const TextStyle(fontSize: 16, color: Color(0xFF3E3E3E), fontWeight: FontWeight.bold)),
+              child: Text(date, style: const TextStyle(fontSize: 14, color: Colors.black87, fontWeight: FontWeight.bold)),
             ),
             const SizedBox(height: 8),
             buildGalleryCard(postsForDate),

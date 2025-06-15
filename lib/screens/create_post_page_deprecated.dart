@@ -3,7 +3,6 @@ import 'package:image_picker/image_picker.dart'; // ✅ 이미지 선택을 위�
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:io';
-import 'dart:developer'; // log() 사용을 위해 추가
 import '../services/auth_service.dart';
 import '../config.dart';
 import '../widgets/common/vibe_header.dart'; 

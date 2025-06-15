@@ -16,7 +16,7 @@ class ProfileAvatar extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle, // ✅ 원형 아바타
         color: Colors.white, // ✅ 배경색 설정
-        border: Border.all(color: Colors.black, width: 1.0), // ✅ 검은색 테두리 추가
+        border: Border.all(color: Colors.black, width: 0.5), // ✅ 검은색 테두리 추가
         image: DecorationImage(
           image: profileImage != null
               ? FileImage(profileImage!) // ✅ 로컬 파일

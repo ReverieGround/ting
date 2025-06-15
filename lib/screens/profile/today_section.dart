@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import '../../config.dart';
-import '../../services/auth_service.dart';
+import '../../screens/create_post_page.dart';
 
 class TodaySection extends StatefulWidget {
   final List<dynamic> posts;
@@ -50,20 +47,45 @@ class _TodaySectionState extends State<TodaySection> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Padding(
-          padding: EdgeInsets.fromLTRB(20, 15, 20, 10),
+          padding: EdgeInsets.fromLTRB(20, 5, 20, 5),
           child: Text(
             "Today",
             style: TextStyle(
               fontSize: 16,
               color: Colors.black,
-              fontWeight: FontWeight.w400,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ),
         SizedBox(
           height: 110,
           child: sortedPosts.isEmpty
-              ? const Center(child: Text("No posts", style: TextStyle(color: Color.fromARGB(243, 150, 150, 150), fontSize: 14)))
+              ? Padding(
+                padding: const EdgeInsets.only(left:20.0),
+                child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const CreatePostPage()),
+                        );
+                      },
+                      child: Container(
+                        width: 90,
+                        height: 90,
+                        decoration: BoxDecoration(
+                          color: const Color.fromARGB(255, 250, 250, 250),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.black54, width: 0.5),
+                        ),
+                        child: const Center(
+                          child: Icon(Icons.add, size: 40, color: Colors.black54),
+                        ),
+                      ),
+                    ),
+                  ),
+              )
               : ListView.separated(
                   controller: _scrollController, // ✅ 반드시 연결해야 작동함!
                   scrollDirection: Axis.horizontal,
@@ -76,7 +98,6 @@ class _TodaySectionState extends State<TodaySection> {
                   itemBuilder: (_, index) {
                     final isSelected = selectedIndex == index;
                     final size = isSelected ? 110.0 : 80.0;
-
                     final post = sortedPosts[index];
                     final List imageList = post['image_urls'] ?? [];
                     
@@ -96,7 +117,7 @@ class _TodaySectionState extends State<TodaySection> {
                           width: size,
                           height: size,
                           decoration: BoxDecoration(
-                            color: Colors.grey[200],
+                            color: Colors.black26,
                             borderRadius: BorderRadius.circular(12),
                             image: imageUrl != null
                                 ? DecorationImage(

@@ -42,5 +42,33 @@
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
 	</array>
+	<key>CFBundleURLTypes</key>
+	<array>
+	<dict>
+		<key>CFBundleURLSchemes</key>
+		<array>
+		<string>com.googleusercontent.apps.1088275016090-ilhbipi5g51hg7aklkguhfe7gv7vb1af</string>
+		</array>
+	</dict>
+	<dict>
+    	<key>CFBundleURLSchemes</key>
+		<array>
+		<string>fb1135413371934546</string> <!-- ← 여기 App ID 숫자만 -->
+		</array>
+	</dict>
+	</array>
+
+	<key>FacebookAppID</key>
+	<string>1135413371934546</string>
+
+	<key>FacebookDisplayName</key>
+	<string>VibeYum</string>
+
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>fbauth2</string>
+	</array>
+
+
 </dict>
 </plist>

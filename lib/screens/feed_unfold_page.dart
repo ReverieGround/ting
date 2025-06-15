@@ -9,7 +9,6 @@ import '../config.dart';
 import 'post_page.dart';
 import 'recipe_example/recipe_list_page.dart';
 
-
 class FeedUnfoldPage extends StatefulWidget {
   const FeedUnfoldPage({super.key});
 
@@ -43,12 +42,9 @@ class _FeedUnfoldPageState extends State<FeedUnfoldPage> {
         Uri.parse('${Config.baseUrl}/user/ids'),
         headers: {'Authorization': 'Bearer $token'},
       );
-
       if (userRes.statusCode != 200) throw Exception('유저 목록 조회 실패');
-
       List<dynamic> userIds = json.decode(userRes.body)['user_ids'];
       userIds.remove(myUserId); // 나 자신 제외
-
       List<dynamic> posts = [];
 
       for (String userId in userIds) {
@@ -62,36 +58,36 @@ class _FeedUnfoldPageState extends State<FeedUnfoldPage> {
           posts.addAll(userPosts);
         }
       }
-
-      // posts.sort((a, b) => b['created_at'].compareTo(a['created_at']));
-
       setState(() {
         allPosts = posts;
         isLoading = false;
       });
-      
     } catch (e) {
       print('피드 로딩 실패: $e');
       setState(() => isLoading = false);
     }
   }
+
   Widget _buildOverlayButton({
     required String text,
     required IconData icon,
     required VoidCallback onPressed,
   }) {
-    return ElevatedButton.icon(
-      onPressed: onPressed,
-      icon: Icon(icon, size: 18, color: Colors.white),
-      label: Text(
-        text,
-        style: const TextStyle(color: Colors.white, fontSize: 14),
-      ),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.black.withOpacity(0.4), // 반투명
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        elevation: 0,
+    return SizedBox(
+      height: 36,
+      child: ElevatedButton.icon(
+        onPressed: onPressed,
+        icon: Icon(icon, size: 18, color: Colors.white),
+        label: Text(
+          text,
+          style: const TextStyle(color: Colors.white, fontSize: 14),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.black.withOpacity(0.6), // 반투명
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          elevation: 0,
+        ),
       ),
     );
   }
@@ -115,18 +111,14 @@ class _FeedUnfoldPageState extends State<FeedUnfoldPage> {
             );
           },
           child: Container(
-            color: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 10),
+            margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.all(Radius.circular(16)),
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ListTile(
-                  leading: ProfileAvatar(
-                    profileUrl: post['profile_image'],
-                    size: 30,
-                  ),
-                  title: Text(post['username'] ?? 'Unknown'),
-                ),
                 if (imageUrls.isNotEmpty)
                   SizedBox(
                     height: 250,
@@ -139,12 +131,17 @@ class _FeedUnfoldPageState extends State<FeedUnfoldPage> {
                             setInnerState(() => currentPage = index);
                           },
                           itemBuilder: (context, index) {
-                            return Image.network(
-                              imageUrls[index],
-                              width: double.infinity,
-                              height: 250,
-                              fit: BoxFit.cover,
-                            );
+                            return ClipRRect(
+                              borderRadius: const BorderRadius.only(
+                                topLeft: Radius.circular(16),
+                                topRight: Radius.circular(16),
+                              ),
+                              child: Image.network(
+                                imageUrls[index],
+                                width: double.infinity,
+                                height: 250,
+                                fit: BoxFit.cover,
+                            ));
                           },
                         ),
                         if (post['recipe_id'] != null && post['recipe_title'] != null)
@@ -196,6 +193,31 @@ class _FeedUnfoldPageState extends State<FeedUnfoldPage> {
                       ],
                     ),
                   ),
+                Padding(
+                  padding: const EdgeInsets.only(left: 5, top:5),
+                  child: Row(
+                    children: [
+                      ProfileAvatar(
+                            profileUrl: post['profile_image'],
+                            size: 35,
+                      ),
+                      SizedBox(width: 12),
+                      Container(
+                        padding: EdgeInsets.zero,
+                        margin: EdgeInsets.zero,
+                        height: 40,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children:[
+                            Text(post['username'], style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: Colors.black)),
+                            Text(post['user_title'] ?? '', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w400, color: Colors.black)),
+                          ]
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
                 if (tags.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -232,14 +254,14 @@ class _FeedUnfoldPageState extends State<FeedUnfoldPage> {
                   ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  child: Text(post['content'] ?? '', style: const TextStyle(fontSize: 16)),
+                  child: Text(post['content'] ?? '', style: const TextStyle(fontSize: 16, color: Colors.black)),
                 ),
                 if (comments.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     child: Text(
                       '${comments[0]['username'] ?? '익명'}: ${comments[0]['content'] ?? ''}',
-                      style: const TextStyle(fontSize: 14, color: Colors.black87),
+                      style: const TextStyle(fontSize: 14, color: Colors.black),
                     ),
                   ),
                 const SizedBox(height: 8),
@@ -261,29 +283,42 @@ class _FeedUnfoldPageState extends State<FeedUnfoldPage> {
         ),
         navigateType: VibeHeaderNavType.profilePage,
         showBackButton: false,
+        backgroundColor: Color.fromARGB(255, 245, 245, 245),
       ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : allPosts.isNotEmpty
-              ? RefreshIndicator(
-                  onRefresh: fetchAllFeeds,
-                  child: ListView.builder(
-                    itemCount: allPosts.length,
-                    itemBuilder: (context, index) => buildPostCard(allPosts[index]),
-                  ),
-                )
-              : const Center(child: Text("No posts")),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const RecipeListPage()),
-          );
-        },
-        label: const Text("요리하기", style: TextStyle(fontWeight: FontWeight.bold)),
-        icon: const Icon(Icons.restaurant_menu),
-        backgroundColor: Colors.deepOrangeAccent,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(36)),
+      body: Container(
+        color: const Color.fromARGB(255, 245, 245, 245),
+        child: isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : allPosts.isNotEmpty
+                ? RefreshIndicator(
+                    onRefresh: fetchAllFeeds,
+                    child: ListView.builder(
+                      itemCount: allPosts.length,
+                      itemBuilder: (context, index) => buildPostCard(allPosts[index]),
+                    ),
+                  )
+                : const Center(child: Text("No posts")),
+      ),
+      floatingActionButton: SizedBox(
+        height: 36,
+        child: FloatingActionButton.extended(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const RecipeListPage()),
+            );
+          },
+          label: const Text(
+            "요리하기", 
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold, 
+              color: Colors.white)),
+          icon: const Icon(Icons.restaurant_menu, size: 16),
+          backgroundColor: Colors.black,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(36)),
+          extendedPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5), // ✅ 좌우 공간 줄이기
+        ),
       ),
     );
   }

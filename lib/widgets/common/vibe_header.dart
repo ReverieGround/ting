@@ -22,20 +22,21 @@ class VibeHeader extends StatelessWidget implements PreferredSizeWidget {
   final bool showBackButton;
   final VibeHeaderNavType? navigateType; // nullable
   final Function? headerCallback; 
-
+  final Color backgroundColor;
   const VibeHeader({
     super.key,
     required this.titleWidget,
     this.navigateType,
     this.showBackButton = true,
     this.headerCallback, 
+    this.backgroundColor = Colors.white,
   });
 
   /// 액션 아이콘 반환
   IconData _iconFor(VibeHeaderNavType type) {
     switch (type) {
       case VibeHeaderNavType.createPost:
-        return Icons.camera_alt_rounded;
+        return Icons.local_dining_rounded; // camera_alt_rounded;
       case VibeHeaderNavType.createRecipe:
         return Icons.ramen_dining_rounded;
       case VibeHeaderNavType.profilePage:
@@ -87,7 +88,7 @@ class VibeHeader extends StatelessWidget implements PreferredSizeWidget {
       elevation: 0,
       leadingWidth: 20,           // ← leading 영역 너비 제거
       titleSpacing: 0,           // ← title 왼쪽 패딩 제거
-      backgroundColor: Colors.white,
+      backgroundColor: this.backgroundColor,
       automaticallyImplyLeading: false,
       leading: showBackButton
           ? IconButton(
@@ -104,19 +105,25 @@ class VibeHeader extends StatelessWidget implements PreferredSizeWidget {
           ? [
               Container(
                 // margin: const EdgeInsets.only(right: 8),
-                width: 60,
+                width: 50,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: Colors.grey[900],
+                  color: this.backgroundColor,
                   borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(12),
-                    bottomLeft: Radius.circular(12),
+                    topLeft: Radius.circular(16),
+                    bottomLeft: Radius.circular(16),
+                  ),
+                  border: const Border(
+                    top: BorderSide(color: Colors.black, width: 0.5),
+                    left: BorderSide(color: Colors.black, width: 0.5),
+                    bottom: BorderSide(color: Colors.black, width: 0.5),
+                    right: BorderSide.none, // ✅ 오른쪽 테두리 제거
                   ),
                 ),
                 child: IconButton(
                   icon: Icon(
                     _iconFor(navigateType!),
-                    color: Colors.white,
+                    color: Colors.black54,
                     size: 26,
                   ),
                   onPressed: () => _navigate(context),
