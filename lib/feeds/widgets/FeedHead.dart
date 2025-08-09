@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import '../../widgets/utils/profile_avatar.dart'; 
 import '../../widgets/utils/time_ago_text.dart'; 
 
-class FeedHeader extends StatelessWidget { 
+class FeedHead extends StatelessWidget { 
   final String profileImageUrl;
   final String userName;
   final String? userTitle;
   final String createdAt;
 
-  const FeedHeader({
+  const FeedHead({
     Key? key,
     required this.profileImageUrl,
     required this.userName,

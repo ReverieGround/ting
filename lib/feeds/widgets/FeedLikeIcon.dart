@@ -15,7 +15,7 @@ String formatNumber(int count) {
   }
 }
 
-class LikeWidget extends StatefulWidget {
+class FeedLikeIcon extends StatefulWidget {
   final String postId;
   final int initialLikeCount;
   final bool hasLiked;
@@ -23,7 +23,7 @@ class LikeWidget extends StatefulWidget {
   final double fontSize;
   final double iconSize;
 
-  const LikeWidget({
+  const FeedLikeIcon({
     super.key,
     required this.postId,
     required this.initialLikeCount,
@@ -34,10 +34,10 @@ class LikeWidget extends StatefulWidget {
   });
 
   @override
-  State<LikeWidget> createState() => _LikeWidgetState();
+  State<FeedLikeIcon> createState() => _LikeWidgetState();
 }
 
-class _LikeWidgetState extends State<LikeWidget> {
+class _LikeWidgetState extends State<FeedLikeIcon> {
   late int _currentLikeCount;
   late bool _currentHasLiked; 
   bool _isToggling = false;
@@ -53,7 +53,7 @@ class _LikeWidgetState extends State<LikeWidget> {
   }
 
   @override
-  void didUpdateWidget(covariant LikeWidget oldWidget) {
+  void didUpdateWidget(covariant FeedLikeIcon oldWidget) {
     super.didUpdateWidget(oldWidget);
     // 좋아요 수와 좋아요 여부가 외부에서 변경될 때만 업데이트
     if (widget.initialLikeCount != oldWidget.initialLikeCount) {

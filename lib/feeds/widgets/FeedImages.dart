@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'tag.dart';
+import 'FeedTag.dart';
 
-class FeedImageCarousel extends StatefulWidget {
+class FeedImages extends StatefulWidget {
   final List<dynamic> imageUrls;
   final String category;
   final String value;
@@ -9,7 +9,7 @@ class FeedImageCarousel extends StatefulWidget {
   final String? recipeTitle;
   final VoidCallback? onRecipeButtonPressed;
 
-  const FeedImageCarousel({ 
+  const FeedImages({ 
     Key? key,
     required this.imageUrls,
     required this.category,
@@ -20,10 +20,10 @@ class FeedImageCarousel extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<FeedImageCarousel> createState() => _FeedImageCarouselState(); 
+  State<FeedImages> createState() => _FeedImageCarouselState(); 
 }
 
-class _FeedImageCarouselState extends State<FeedImageCarousel> { 
+class _FeedImageCarouselState extends State<FeedImages> { 
   final PageController _pageController = PageController();
   int _currentPage = 0;
 

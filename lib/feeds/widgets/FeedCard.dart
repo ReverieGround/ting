@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'header.dart';
-import 'image_carousel.dart';
-import 'content_and_comment.dart';
+import 'FeedHead.dart';
+import 'FeedImages.dart';
+import 'FeedContent.dart';
 import '../../posts/page.dart';
-import 'like_widget.dart';
-import 'comment_widget.dart';
-import '../../models/post_data.dart';
-import '../../models/feed_data.dart';
+import 'FeedLikeIcon.dart';
+import 'FeedReplyIcon.dart';
+import '../../models/PostData.dart';
+import '../../models/FeedData.dart';
 
 class FeedCard extends StatelessWidget {
   final FeedData feed;
@@ -38,14 +38,14 @@ class FeedCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            FeedHeader(
+            FeedHead(
               profileImageUrl: feed.user.profileImage!,
               userName: feed.user.userName,
               userTitle: feed.user.title,
               createdAt: formatTimestamp(feed.post.createdAt),
             ),
             if (imageUrls.isNotEmpty)
-              FeedImageCarousel(
+              FeedImages(
                 imageUrls: imageUrls,
                 category: feed.post.category,
                 value: value,
@@ -58,7 +58,7 @@ class FeedCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Row(children: [
-                LikeWidget(
+                FeedLikeIcon(
                   postId: feed.post.postId,
                   initialLikeCount: feed.post.likesCount,
                   hasLiked: feed.isLikedByUser,
@@ -67,7 +67,7 @@ class FeedCard extends StatelessWidget {
                   iconSize: 22.0,
                 ),
                 SizedBox(width: 12),
-                CommentWidget(
+                FeedReplyIcon(
                   postId: feed.post.postId,
                   initialCommentCount: (feed.post.comments == null) ? feed.post.comments!.length : 0,
                   fontSize: 18.0,
@@ -75,7 +75,7 @@ class FeedCard extends StatelessWidget {
                 ),
               ]),
             ),
-            FeedContentAndComment(
+            FeedContent(
               content: feed.post.content,
               comments: comments,
             ),

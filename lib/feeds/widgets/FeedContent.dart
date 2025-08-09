@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-class FeedContentAndComment extends StatelessWidget {
+class FeedContent extends StatelessWidget {
   final String? content;
   final List<dynamic> comments;
 
-  const FeedContentAndComment({
+  const FeedContent({
     Key? key,
     this.content,
     required this.comments,
