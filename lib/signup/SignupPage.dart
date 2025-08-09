@@ -6,7 +6,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import '../widgets/register/text_field.dart';
 import '../widgets/register/country_field.dart';
 import '../widgets/utils/profile_avatar.dart';
-import '../widgets/common/vibe_header.dart'; 
+import '../AppHeader.dart'; 
 import '../services/AuthService.dart';
 
 class SignupPage extends StatefulWidget {
@@ -146,7 +146,7 @@ class _SignupPageState extends State<SignupPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: VibeHeader(
+      appBar: AppHeader(
         titleWidget: Text(
           '회원가입',
           style:TextStyle(fontSize: 20, color: Colors.black, fontWeight: FontWeight.bold),

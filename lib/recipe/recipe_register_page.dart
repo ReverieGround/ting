@@ -1,15 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'recipe_title_section.dart';
-import 'ingredient_list_section.dart';
-import 'instruction_step_section.dart';
 import 'recipe_type_selector.dart';
 import 'parent_recipe_link_section.dart';
 import 'recipe_change_options_section.dart';
-import 'tag_selector_section.dart';
 import 'submit_button.dart';
-import '../widgets/common/vibe_header.dart'; 
+import '../AppHeader.dart'; 
 import 'recipe_form_provider.dart';
 
 class RecipeRegisterPage extends StatelessWidget {
@@ -20,7 +16,7 @@ class RecipeRegisterPage extends StatelessWidget {
     final isOriginal = context.watch<RecipeFormProvider>().isOriginal;
 
     return Scaffold(
-      appBar: VibeHeader(
+      appBar: AppHeader(
         titleWidget: Text(
           "레시피 등록",
           style:TextStyle(fontSize: 20, color: Colors.black, fontWeight: FontWeight.bold),

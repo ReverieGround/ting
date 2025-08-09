@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../create/CreatePostPage.dart';
-import '../../signup/SignupPage.dart';
-import '../../profile/ProfilePage.dart';
-import '../../recipe/recipe_register_page.dart';
-import '../../recipe/recipe_form_provider.dart';
-import '../../login/LoginPage.dart';
+import 'create/CreatePostPage.dart';
+import 'signup/SignupPage.dart';
+import 'profile/ProfilePage.dart';
+import 'recipe/recipe_register_page.dart';
+import 'recipe/recipe_form_provider.dart';
+import 'login/LoginPage.dart';
 
 /// 액션 버튼 타입 정의
 enum VibeHeaderNavType {
@@ -18,7 +18,7 @@ enum VibeHeaderNavType {
 }
 
 /// AppBar 대체 커스텀 헤더
-class VibeHeader extends StatelessWidget implements PreferredSizeWidget {
+class AppHeader extends StatelessWidget implements PreferredSizeWidget {
   final Widget titleWidget;
   final bool showBackButton;
   final VibeHeaderNavType? navigateType; // nullable
@@ -26,7 +26,7 @@ class VibeHeader extends StatelessWidget implements PreferredSizeWidget {
   final Color backgroundColor;
   final Color leadingColor;
   final bool centerTitle;
-  const VibeHeader({
+  const AppHeader ({
     super.key,
     required this.titleWidget,
     this.navigateType,

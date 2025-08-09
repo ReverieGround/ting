@@ -10,7 +10,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
 // Common widgets
-import '../widgets/common/vibe_header.dart';
+import '../AppHeader.dart';
 import '../widgets/utils/profile_avatar.dart';
 
 // Custom models and widgets
@@ -167,7 +167,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
 
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-      appBar: VibeHeader(
+      appBar: AppHeader(
         showBackButton: false,
         backgroundColor: const Color.fromARGB(255, 255, 255, 255),
         titleWidget: Container(

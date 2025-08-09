@@ -12,7 +12,7 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 
 import '../../services/AuthService.dart';
 import '../../config.dart';
-import '../../widgets/common/vibe_header.dart';
+import '../AppHeader.dart';
 import '../models/PostInputData.dart';
 import 'widgets/FinalCheck.dart';
 import 'EditPage.dart'; // EditPage 임포트
@@ -321,7 +321,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
     final currentInput = postInputs[_currentIndex];
 
     return Scaffold(
-      appBar: VibeHeader(
+      appBar: AppHeader(
         backgroundColor: Colors.white,
         centerTitle: true,
         titleWidget: InkWell(

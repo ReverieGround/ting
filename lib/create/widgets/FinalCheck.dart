@@ -9,7 +9,7 @@ import 'package:uuid/uuid.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import '../../../services/AuthService.dart';
 import '../../../config.dart';
-import '../../../widgets/common/vibe_header.dart';
+import '../../AppHeader.dart';
 import '../../models/PostInputData.dart'; // Ensure PostInputData is correctly defined here
 
 class FinalCheck extends StatefulWidget {
@@ -193,7 +193,7 @@ class _FinalCheckState extends State<FinalCheck> {
     final List<File> allImages = widget.postInputs.expand((input) => input.imageFiles).toList();
 
     return Scaffold(
-      appBar: VibeHeader(
+      appBar: AppHeader(
         backgroundColor: Colors.white,
         centerTitle: true,
         titleWidget: Row(

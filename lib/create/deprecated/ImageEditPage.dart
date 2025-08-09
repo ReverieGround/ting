@@ -2,7 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image/image.dart' as img;
-import '../../../widgets/common/vibe_header.dart'; 
+import '../../AppHeader.dart'; 
 
 class ImageEditPage extends StatefulWidget {
   final File originalFile;
@@ -53,7 +53,7 @@ class _ImageEditPageState extends State<ImageEditPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color.fromRGBO(20, 20, 20, 1),
-      appBar: VibeHeader(
+      appBar: AppHeader(
         leadingColor: Colors.white,
         backgroundColor: Color.fromRGBO(20, 20, 20, 1),
         centerTitle: true,
