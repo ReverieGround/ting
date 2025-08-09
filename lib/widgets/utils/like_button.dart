@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../config.dart';
-import '../../services/auth_service.dart'; // ✅ JWT 토큰 가져오기
+import '../../services/AuthService.dart'; // ✅ JWT 토큰 가져오기
 import 'dart:developer'; 
 
 class LikeButton extends StatefulWidget {

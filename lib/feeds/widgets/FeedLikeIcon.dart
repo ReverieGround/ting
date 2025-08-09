@@ -1,6 +1,6 @@
 // lib/widgets/like_widget.dart
 import 'package:flutter/material.dart';
-import '../../services/post_service.dart'; 
+import '../../services/PostService.dart'; 
 
 // 숫자 단위 축약 함수 (변동 없음)
 String formatNumber(int count) {

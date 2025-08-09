@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http; // http 통신을 위해 import
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import '../../../config.dart'; // API Base URL을 위해 import
-import '../../../services/auth_service.dart'; // 인증 토큰을 위해 import
+import '../../../services/AuthService.dart'; // 인증 토큰을 위해 import
 import '../../feeds/widgets/FeedLikeIcon.dart';
 import '../../feeds/widgets/FeedReplyIcon.dart';
 

@@ -6,7 +6,7 @@ import '../../widgets/post/content.dart';
 import '../../widgets/post/tags.dart';
 import '../../widgets/post/status.dart';
 import '../../widgets/post/comments.dart';
-import '../../services/auth_service.dart'; 
+import '../../services/AuthService.dart'; 
 import '../../config.dart';
 import '../models/PostData.dart';
 

@@ -10,7 +10,7 @@ import 'package:exif/exif.dart';
 import 'package:uuid/uuid.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 
-import '../../services/auth_service.dart';
+import '../../services/AuthService.dart';
 import '../../config.dart';
 import '../../widgets/common/vibe_header.dart';
 import '../models/PostInputData.dart';

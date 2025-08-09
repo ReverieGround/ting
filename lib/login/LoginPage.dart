@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../signup/page.dart';
-import '../services/auth_service.dart';
+import '../signup/SignupPage.dart';
+import '../services/AuthService.dart';
 import '../home/HomePage.dart';
 
 class LoginPage extends StatefulWidget {

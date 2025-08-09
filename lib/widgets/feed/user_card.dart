@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../config.dart';
-import '../../services/auth_service.dart';
+import '../../services/AuthService.dart';
 import 'post_card.dart';
 import '../utils/profile_avatar.dart';
 

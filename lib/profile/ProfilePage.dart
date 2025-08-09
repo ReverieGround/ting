@@ -21,7 +21,7 @@ import 'widgets/UserStatsRow.dart';
 import 'widgets/PinnedFeedsGrid.dart';
 import 'widgets/StatusMessage.dart';
 import 'widgets/YumTab.dart';
-import '../services/auth_service.dart';
+import '../services/AuthService.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});

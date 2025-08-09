@@ -7,7 +7,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:uuid/uuid.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
-import '../../../services/auth_service.dart';
+import '../../../services/AuthService.dart';
 import '../../../config.dart';
 import '../../../widgets/common/vibe_header.dart';
 import '../../models/PostInputData.dart'; // Ensure PostInputData is correctly defined here

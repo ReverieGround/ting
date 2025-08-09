@@ -7,7 +7,7 @@ import '../widgets/register/text_field.dart';
 import '../widgets/register/country_field.dart';
 import '../widgets/utils/profile_avatar.dart';
 import '../widgets/common/vibe_header.dart'; 
-import '../services/auth_service.dart';
+import '../services/AuthService.dart';
 
 class SignupPage extends StatefulWidget {
   const SignupPage({super.key});

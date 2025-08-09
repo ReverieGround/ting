@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'splash.dart';
-import 'theme/app_theme.dart';
+import 'theme/AppTheme.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart'; // required
 import 'firebase_options.dart'; 
-
+import 'SplashPage.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,7 +23,7 @@ class VibeYumApp extends StatelessWidget {
       themeMode: ThemeMode.light, // Force light mode
       theme: AppTheme.lightTheme,
       debugShowCheckedModeBanner: false,
-      home: SplashScreen(),
+      home: SplashPage(),
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,

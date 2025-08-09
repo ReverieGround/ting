@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'FeedHead.dart';
 import 'FeedImages.dart';
 import 'FeedContent.dart';
-import '../../posts/page.dart';
+import '../../posts/PostPage.dart';
 import 'FeedLikeIcon.dart';
 import 'FeedReplyIcon.dart';
 import '../../models/PostData.dart';
