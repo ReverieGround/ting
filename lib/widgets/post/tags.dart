@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../models/post_data.dart';
+import '../../models/PostData.dart';
 
 class PostTags extends StatelessWidget {
   final PostData post;

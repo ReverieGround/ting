@@ -8,7 +8,7 @@ import '../../widgets/post/status.dart';
 import '../../widgets/post/comments.dart';
 import '../../services/auth_service.dart'; 
 import '../../config.dart';
-import '../models/post_data.dart';
+import '../models/PostData.dart';
 
 class PostPage extends StatefulWidget {
   final PostData post;

@@ -1,11 +1,11 @@
-// lib/models/feed_data.dart
+// lib/models/FeedData.dart
 import 'package:flutter/material.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-import 'user_data.dart';
-import 'post_data.dart';
+import 'UserData.dart';
+import 'PostData.dart';
 
 class FeedData {
   final UserData user;

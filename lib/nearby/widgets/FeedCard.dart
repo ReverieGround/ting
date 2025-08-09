@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import '../../../config.dart'; // API Base URL을 위해 import
 import '../../../services/auth_service.dart'; // 인증 토큰을 위해 import
-import '../../feeds/widgets/like_widget.dart';
-import '../../feeds/widgets/comment_widget.dart';
+import '../../feeds/widgets/FeedLikeIcon.dart';
+import '../../feeds/widgets/FeedReplyIcon.dart';
 
 
 class FeedCard extends StatefulWidget {
@@ -186,7 +186,7 @@ class _FeedCardState extends State<FeedCard> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              LikeWidget(
+              FeedLikeIcon(
                   postId: widget.postId,
                   initialLikeCount: _currentLikeCount,
                   hasLiked: _isLikedByUser,
@@ -195,7 +195,7 @@ class _FeedCardState extends State<FeedCard> {
                   iconSize: 20.0,
                 ),
               SizedBox(width: 40),
-              CommentWidget(
+              FeedReplyIcon(
                 postId: widget.postId,
                 initialCommentCount: _currentCommentCount,
                 fontSize: 13.0,

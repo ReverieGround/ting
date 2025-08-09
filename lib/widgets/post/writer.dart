@@ -5,7 +5,7 @@ import '../utils/profile_avatar.dart';
 import 'dart:convert';
 import '../../config.dart'; // ✅ API Base URL 가져오기
 import '../utils/time_ago_text.dart';
-import '../../models/post_data.dart';
+import '../../models/PostData.dart';
 
 class UserInfoRow extends StatefulWidget {
   final PostData post;

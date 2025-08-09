@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../models/feed_data.dart'; 
-import '../../nearby/widgets/feed_card.dart'; 
+import '../../models/FeedData.dart'; 
+import '../../nearby/widgets/FeedCard.dart'; 
 
 class PinnedFeedsGrid extends StatelessWidget {
   final List<FeedData> pinnedFeeds;

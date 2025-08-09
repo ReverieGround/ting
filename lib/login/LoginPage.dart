@@ -3,7 +3,7 @@ import 'package:local_auth/local_auth.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../signup/page.dart';
 import '../services/auth_service.dart';
-import '../home/page.dart';
+import '../home/HomePage.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -42,7 +42,7 @@ class LoginPageState extends State<LoginPage> {
         Navigator.pushReplacement(
           context,
           // MaterialPageRoute(builder: (context) => const FeedUnfoldPage()),
-          MaterialPageRoute(builder: (context) => const MainPage()),
+          MaterialPageRoute(builder: (context) => const HomePage()),
         );
       }
     }
@@ -67,7 +67,7 @@ class LoginPageState extends State<LoginPage> {
 
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const MainPage()),
+          MaterialPageRoute(builder: (context) => const HomePage()),
         );
       } else {
         await FirebaseAuth.instance.signOut();
@@ -175,7 +175,7 @@ class LoginPageState extends State<LoginPage> {
                           // ✅ 자동 이동 처리
                           Navigator.pushReplacement(
                             context,
-                            MaterialPageRoute(builder: (_) => const MainPage()),
+                            MaterialPageRoute(builder: (_) => const HomePage()),
                           );
                       }
                     },
@@ -208,7 +208,7 @@ class LoginPageState extends State<LoginPage> {
                         await Future.delayed(const Duration(milliseconds: 1000));
                         Navigator.pushReplacement(
                           context,
-                          MaterialPageRoute(builder: (_) => const MainPage()),
+                          MaterialPageRoute(builder: (_) => const HomePage()),
                         );
                       } else {
                         // ✅ 실패 안내

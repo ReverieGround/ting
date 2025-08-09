@@ -1,7 +1,7 @@
 // lib/pages/nearby/widgets/feed_grid.dart
 import 'package:flutter/material.dart';
-import '../../models/feed_data.dart';
-import 'feed_card.dart';             
+import '../../models/FeedData.dart';
+import 'FeedCard.dart';             
 
 class FeedGrid extends StatelessWidget {
   final List<FeedData> feeds; 

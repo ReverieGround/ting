@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/like_button.dart'; // ✅ LikeButton 추가
-import '../../models/post_data.dart';
+import '../../models/PostData.dart';
 
 class PostStatsRow extends StatelessWidget {
   final PostData post;

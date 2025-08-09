@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'widgets/main_header.dart';
 import 'widgets/feed_grid.dart';  
-import '../models/feed_data.dart'; 
+import '../models/FeedData.dart'; 
 import '../../services/feed_service.dart';
 import '../../services/user_service.dart';
 

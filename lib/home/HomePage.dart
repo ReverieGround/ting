@@ -1,19 +1,17 @@
 import 'package:flutter/material.dart';
-import '../feeds/page.dart';
+import '../feeds/FeedPage.dart';
 import '../profile/page.dart';
 import '../nearby/page.dart';
 import 'dart:ui';
-import '../services/auth_service.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
-class MainPage extends StatefulWidget {
-  const MainPage({super.key});
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
 
   @override
-  State<MainPage> createState() => _MainPageState();
+  State<HomePage> createState() => _HomePageState();
 }
 
-class _MainPageState extends State<MainPage> {
+class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0; // 현재 선택된 내비게이션 인덱스
 
   static const List<Widget> _widgetOptions = <Widget>[

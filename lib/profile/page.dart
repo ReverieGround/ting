@@ -14,9 +14,9 @@ import '../widgets/common/vibe_header.dart';
 import '../widgets/utils/profile_avatar.dart';
 
 // Custom models and widgets
-import '../models/my_info.dart';
-import '../models/post_data.dart';
-import '../models/feed_data.dart';
+import '../models/MyInfo.dart';
+import '../models/PostData.dart';
+import '../models/FeedData.dart';
 import 'widgets/user_stats_row.dart';
 import 'widgets/pinned_feeds_grid.dart';
 import 'widgets/status.dart';

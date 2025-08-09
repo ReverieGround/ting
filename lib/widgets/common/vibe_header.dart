@@ -5,7 +5,7 @@ import '../../signup/page.dart';
 import '../../profile/page.dart';
 import '../../recipe/recipe_register_page.dart';
 import '../../recipe/recipe_form_provider.dart';
-import '../../login/page.dart';
+import '../../login/LoginPage.dart';
 
 /// 액션 버튼 타입 정의
 enum VibeHeaderNavType {

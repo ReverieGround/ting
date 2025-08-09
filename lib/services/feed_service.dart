@@ -3,8 +3,8 @@ import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; // ✅ Firestore 임포트
 import 'package:firebase_auth/firebase_auth.dart'; // ✅ FirebaseAuth 임포트
 
-import '../models/post_data.dart';
-import '../models/feed_data.dart';
+import '../models/PostData.dart';
+import '../models/FeedData.dart';
 
 class FeedService {
 
