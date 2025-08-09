@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'content_grid.dart';
-import 'yum_tab.dart';
+import 'ContentGrid.dart';
+import 'YumTab.dart';
  
 class TabSection extends StatefulWidget {
   final List<dynamic> posts;

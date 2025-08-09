@@ -94,21 +94,21 @@ class _BubbleShapePainter extends CustomPainter {
 }
 
 
-class StatusWidget extends StatefulWidget {
+class StatusMessage extends StatefulWidget {
   final String initialMessage;
   final Function(String) onSave;
 
-  const StatusWidget({
+  const StatusMessage({
     super.key,
     required this.initialMessage,
     required this.onSave,
   });
 
   @override
-  State<StatusWidget> createState() => _StatusWidgetState();
+  State<StatusMessage> createState() => _StatusWidgetState();
 }
 
-class _StatusWidgetState extends State<StatusWidget> {
+class _StatusWidgetState extends State<StatusMessage> {
   late TextEditingController _controller;
   bool _isEditing = false;
   bool _isSaving = false;
@@ -120,7 +120,7 @@ class _StatusWidgetState extends State<StatusWidget> {
   }
 
   @override
-  void didUpdateWidget(covariant StatusWidget oldWidget) {
+  void didUpdateWidget(covariant StatusMessage oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.initialMessage != oldWidget.initialMessage) {
       if (!_isEditing) {
@@ -161,7 +161,7 @@ class _StatusWidgetState extends State<StatusWidget> {
 
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      debugPrint("❌ 로그인된 사용자 없음 (StatusWidget)");
+      debugPrint("❌ 로그인된 사용자 없음 (StatusMessage)");
       setState(() => _isSaving = false);
       return;
     }
@@ -172,7 +172,7 @@ class _StatusWidgetState extends State<StatusWidget> {
           .doc(user.uid)
           .update({'status_message': newMessage});
 
-      debugPrint("✅ Firestore에 상태 메시지 저장 완료 (StatusWidget)");
+      debugPrint("✅ Firestore에 상태 메시지 저장 완료 (StatusMessage)");
       widget.onSave(newMessage);
 
       setState(() {
@@ -181,7 +181,7 @@ class _StatusWidgetState extends State<StatusWidget> {
       });
       FocusScope.of(context).unfocus();
     } catch (e) {
-      debugPrint("❌ Firestore 상태 메시지 저장 실패 (StatusWidget): $e");
+      debugPrint("❌ Firestore 상태 메시지 저장 실패 (StatusMessage): $e");
       setState(() => _isSaving = false);
     }
   }

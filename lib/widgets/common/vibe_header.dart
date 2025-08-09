@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../posts/create.dart';
+import '../../create/CreatePostPage.dart';
 import '../../signup/page.dart';
-import '../../profile/page.dart';
+import '../../profile/ProfilePage.dart';
 import '../../recipe/recipe_register_page.dart';
 import '../../recipe/recipe_form_provider.dart';
 import '../../login/LoginPage.dart';

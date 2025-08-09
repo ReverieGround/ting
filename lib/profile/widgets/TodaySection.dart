@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../posts/create.dart';
+import '../../posts/create.dart';
 
 class TodaySection extends StatefulWidget {
   final List<dynamic> posts;

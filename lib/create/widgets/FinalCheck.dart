@@ -7,15 +7,13 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:uuid/uuid.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
-import '../../services/auth_service.dart';
-import '../../config.dart';
-import '../../widgets/common/vibe_header.dart';
-import 'post_input_data.dart'; // Ensure PostInputData is correctly defined here
+import '../../../services/auth_service.dart';
+import '../../../config.dart';
+import '../../../widgets/common/vibe_header.dart';
+import '../../models/PostInputData.dart'; // Ensure PostInputData is correctly defined here
 
 class FinalCheck extends StatefulWidget {
   final List<PostInputData> postInputs;
-  
-
   const FinalCheck({Key? key, required this.postInputs}) : super(key: key);
 
   @override

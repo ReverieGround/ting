@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../feeds/FeedPage.dart';
-import '../profile/page.dart';
-import '../nearby/page.dart';
+import '../profile/ProfilePage.dart';
+import '../nearby/NearbyPage.dart';
 import 'dart:ui';
 
 class HomePage extends StatefulWidget {

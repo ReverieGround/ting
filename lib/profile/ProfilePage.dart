@@ -17,10 +17,10 @@ import '../widgets/utils/profile_avatar.dart';
 import '../models/MyInfo.dart';
 import '../models/PostData.dart';
 import '../models/FeedData.dart';
-import 'widgets/user_stats_row.dart';
-import 'widgets/pinned_feeds_grid.dart';
-import 'widgets/status.dart';
-import 'yum_tab.dart';
+import 'widgets/UserStatsRow.dart';
+import 'widgets/PinnedFeedsGrid.dart';
+import 'widgets/StatusMessage.dart';
+import 'widgets/YumTab.dart';
 import '../services/auth_service.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -210,7 +210,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
             ),
           ),
           SliverToBoxAdapter(
-            child: StatusWidget(
+            child: StatusMessage(
             initialMessage:  myInfo.statusMessage ?? '',
             onSave: _uploadStatusMessage,
             ),

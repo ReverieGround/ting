@@ -1,7 +1,7 @@
 // lib/pages/feed/feed_page.dart
 import 'package:flutter/material.dart';
 import 'widgets/FeedCard.dart';
-import '../posts/create.dart';
+import '../create/CreatePostPage.dart';
 import '../models/FeedData.dart';
 import '../../services/feed_service.dart'; // ✅ FeedService 임포트
 

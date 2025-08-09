@@ -1,8 +1,8 @@
 // lib/pages/nearby/widgets/main_header.dart
 
 import 'package:flutter/material.dart';
-import 'filter_bar.dart';
-import 'location_selector.dart';
+import 'FilterBar.dart';
+import 'LocationSelector.dart';
 
 class MainHeader extends StatefulWidget implements PreferredSizeWidget {
   final String region;

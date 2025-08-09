@@ -9,15 +9,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:exif/exif.dart';
 import 'package:uuid/uuid.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
+
 import '../../services/auth_service.dart';
 import '../../config.dart';
 import '../../widgets/common/vibe_header.dart';
-import 'post_input_data.dart';
-import 'final_check.dart';
-
-// import '../posts/image_edit_page.dart'; // 이제 EditPage로 통합되므로 필요 없음
-
-import 'edit.dart'; // EditPage 임포트
+import '../models/PostInputData.dart';
+import 'widgets/FinalCheck.dart';
+import 'EditPage.dart'; // EditPage 임포트
 
 class CreatePostPage extends StatefulWidget {
   // final Function? headerCallback;

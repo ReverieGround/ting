@@ -2,7 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image/image.dart' as img;
-import '../../widgets/common/vibe_header.dart'; 
+import '../../../widgets/common/vibe_header.dart'; 
 
 class ImageEditPage extends StatefulWidget {
   final File originalFile;
