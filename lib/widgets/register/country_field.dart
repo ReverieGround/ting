@@ -42,11 +42,11 @@ class _RegisterCountryFieldState extends State<RegisterCountryField> {
     return Column(
       children: [
         Container(
-        decoration: BoxDecoration(
-          color: Colors.white, // ✅ 배경 흰색 적용
-          shape: BoxShape.circle, // ✅ 원형 유지
-        ),
-        child: DropdownButtonFormField<String>(
+          decoration: BoxDecoration(
+            color: Colors.white, // ✅ 배경 흰색 적용
+            shape: BoxShape.circle, // ✅ 원형 유지
+          ),
+          child: DropdownButtonFormField<String>(
             decoration: InputDecoration(
               labelText: widget.label,
               labelStyle: TextStyle(color: Colors.grey, fontSize: 14), // ✅ LabelText 연한 회색 & 작은 폰트

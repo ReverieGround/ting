@@ -1,16 +1,45 @@
-# vibe_yum
+# VibeYum 
 
-A new Flutter project.
+#### "VibeYum: 당신의 치유 음식 커뮤니티"
 
-## Getting Started
 
-This project is a starting point for a Flutter application.
+VibeYum은 음식이라는 공통된 즐거움을 통해 사람들을 연결하기 위해 고안된 활기찬 소셜 플랫폼입니다. 맛있는 순간을 기념하고, 요리 영감을 제공하며, 전반적인 웰빙을 증진하는 지원적인 커뮤니티를 목표로 합니다. 사용자들은 자신이 좋아하는 레시피를 공유하고, 새로운 맛을 탐험하며, 좋은 음식에 대한 공동의 사랑에서 위안을 찾을 수 있습니다.
 
-A few resources to get you started if this is your first Flutter project:
+## 시작하기
+VibeYum을 로컬에서 설정하고 실행하려면 다음의 간단한 단계를 따르세요.
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## 전제 조건
+Flutter SDK: Flutter가 설치되어 있는지 확인하세요. 설치되어 있지 않다면, 운영 체제에 맞는 공식 설치 가이드를 따르세요: Flutter 설치 가이드
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Git: 저장소를 복제하려면 Git이 필요합니다.
+
+## 설치
+
+### 저장소 복제:
+```
+git clone https://github.com/your-username/VibeYum.git
+cd VibeYum
+```
+
+(https://github.com/your-username/VibeYum.git을 실제 저장소 URL로 대체하세요)
+
+### 종속성 설치:
+프로젝트 디렉토리로 이동하여 다음을 실행하세요:
+```
+flutter pub get
+```
+
+### 애플리케이션 실행
+기기 연결 또는 에뮬레이터 시작:
+Android 에뮬레이터, iOS 시뮬레이터 또는 Flutter가 인식하는 실제 기기가 연결되어 있는지 확인하세요. 다음 명령어로 연결된 기기를 확인할 수 있습니다:
+```
+flutter devices
+```
+
+### 앱 실행:
+기기가 준비되면 다음 명령어를 사용하여 애플리케이션을 실행하세요:
+```
+flutter run
+```
+
+이 명령은 선택한 기기 또는 에뮬레이터에서 VibeYum 애플리케이션을 실행합니다.

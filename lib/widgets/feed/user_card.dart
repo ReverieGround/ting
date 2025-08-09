@@ -121,7 +121,7 @@ class UserCardState extends State<UserCard> {
                 // ),
                 SizedBox(width: 12),
                 Text(
-                  user!['username'] ?? '사용자',
+                  user!['user_name'] ?? '사용자',
                   style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 18),
                 ),
               ],

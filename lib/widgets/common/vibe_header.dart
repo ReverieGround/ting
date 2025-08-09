@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../screens/create_post_page.dart';
-import '../../screens/register_page.dart';
-import '../../screens/profile/profile_page.dart';
-import '../../screens/recipe/recipe_register_page.dart';
-import '../../screens/recipe/recipe_form_provider.dart';
-import '../../screens/login_page.dart';
+import '../../posts/create.dart';
+import '../../signup/page.dart';
+import '../../profile/page.dart';
+import '../../recipe/recipe_register_page.dart';
+import '../../recipe/recipe_form_provider.dart';
+import '../../login/page.dart';
 
 /// 액션 버튼 타입 정의
 enum VibeHeaderNavType {
@@ -14,6 +14,7 @@ enum VibeHeaderNavType {
   profilePage,
   registerPage,
   loginPage,
+  none, 
 }
 
 /// AppBar 대체 커스텀 헤더
@@ -23,6 +24,8 @@ class VibeHeader extends StatelessWidget implements PreferredSizeWidget {
   final VibeHeaderNavType? navigateType; // nullable
   final Function? headerCallback; 
   final Color backgroundColor;
+  final Color leadingColor;
+  final bool centerTitle;
   const VibeHeader({
     super.key,
     required this.titleWidget,
@@ -30,10 +33,12 @@ class VibeHeader extends StatelessWidget implements PreferredSizeWidget {
     this.showBackButton = true,
     this.headerCallback, 
     this.backgroundColor = Colors.white,
+    this.leadingColor = Colors.black,
+    this.centerTitle = false,
   });
 
   /// 액션 아이콘 반환
-  IconData _iconFor(VibeHeaderNavType type) {
+  IconData? _iconFor(VibeHeaderNavType type) {
     switch (type) {
       case VibeHeaderNavType.createPost:
         return Icons.local_dining_rounded; // camera_alt_rounded;
@@ -45,11 +50,13 @@ class VibeHeader extends StatelessWidget implements PreferredSizeWidget {
         return Icons.app_registration_rounded;
       case VibeHeaderNavType.loginPage:
         return Icons.login_rounded;
+      case VibeHeaderNavType.none:
+        return null;
     }
   }
 
   /// 이동 대상 위젯 반환
-  Widget _buildPageForNavigation() {
+  Widget? _buildPageForNavigation() {
     switch (navigateType) {
       case VibeHeaderNavType.createPost:
         return const CreatePostPage();
@@ -61,9 +68,11 @@ class VibeHeader extends StatelessWidget implements PreferredSizeWidget {
       case VibeHeaderNavType.profilePage:
         return const ProfilePage();
       case VibeHeaderNavType.registerPage:
-        return const RegisterPage();
+        return const SignupPage();
       case VibeHeaderNavType.loginPage:
         return const LoginPage();
+      case VibeHeaderNavType.none:
+        return null;
       case null:
         return const SizedBox.shrink(); // 아무것도 안 함
     }
@@ -75,7 +84,7 @@ class VibeHeader extends StatelessWidget implements PreferredSizeWidget {
     final page = _buildPageForNavigation();
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => page),
+      MaterialPageRoute(builder: (_) => page!),
     );
     if (result == true && headerCallback != null) {
       headerCallback!(); // ✅ 이렇게 함수처럼 호출해야 실행됨!
@@ -92,15 +101,18 @@ class VibeHeader extends StatelessWidget implements PreferredSizeWidget {
       automaticallyImplyLeading: false,
       leading: showBackButton
           ? IconButton(
-              icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
+              iconSize: 20,
+              icon: Icon(
+                Icons.arrow_back_ios, color: this.leadingColor
+               ),
               onPressed: () => Navigator.of(context).pop(),
             )
           : null,
-      title: Padding(
+      title: this.centerTitle ? titleWidget :Padding(
         padding: const EdgeInsets.only(left: 16.0),
         child: titleWidget,
       ),
-      centerTitle: false,
+      centerTitle: this.centerTitle,
       actions: (navigateType != null)
           ? [
               Container(

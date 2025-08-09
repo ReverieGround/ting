@@ -100,7 +100,7 @@ class _PostCommentsState extends State<PostComments> {
                                       size: 24,
                                     ),
                                     SizedBox(width: 6),
-                                    Text(comments[index]['username'] ?? 'Anonymous', 
+                                    Text(comments[index]['user_name'] ?? 'Anonymous', 
                                       style: TextStyle(
                                         fontSize: 14, 
                                         fontWeight: 

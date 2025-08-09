@@ -1,5 +1,5 @@
-name: vibe_yum
-description: "A new Flutter project."
+name: VibeYum
+description: "VibeYum: Your Healing Food Community"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -50,6 +50,11 @@ dependencies:
   kakao_flutter_sdk_user: ^1.9.7+3
   flutter_naver_login: ^2.0.0
   flutter_facebook_auth: ^6.0.3
+  flutter_svg: ^2.0.10+1 
+  image_cropper: ^9.1.0
+  path_provider: ^2.1.1 
+  reorderable_grid_view: ^2.2.8
+  dropdown_button2: ^2.3.9
 
 dev_dependencies:
   flutter_test:
@@ -120,4 +125,27 @@ flutter:
     - assets/login_icons/kakao_logo.png
     - assets/login_icons/naver_logo.png
     - assets/vibeyum_logo.png
+    - assets/logo.png
+    - assets/navi_home_black.png
+    - assets/navi_home_pink.png
+    - assets/navi_me_black.png
+    - assets/navi_me_pink.png
+    - assets/navi_place_black.png
+    - assets/navi_place_pink.png
+    - assets/navi.png
+    - assets/thunder.png
+    - assets/fire.png
+    - assets/soso.png
+    - assets/tasty.png
+    - assets/wack.png
+    - assets/woops.png
+    - assets/title_logo.svg
+    - assets/title_logo.png
     - assets/recipe_dict_filtered.json
+    - assets/rotate.png
+    - assets/link.png
+    - assets/search.png
+    - assets/fork.png
+    - assets/fork_color.png
+    - assets/comment.png
+    

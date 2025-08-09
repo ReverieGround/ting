@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'package:vibe_yum/widgets/utils/profile_avatar.dart';
+import '../utils/profile_avatar.dart';
 import 'dart:convert';
 import '../../config.dart'; // ✅ API Base URL 가져오기
 import '../utils/time_ago_text.dart';
+import '../../models/post_data.dart';
 
 class UserInfoRow extends StatefulWidget {
-  final Map<String, dynamic> post;
+  final PostData post;
 
   const UserInfoRow({super.key, required this.post});
 
@@ -16,7 +17,7 @@ class UserInfoRow extends StatefulWidget {
 }
 
 class _UserInfoRowState extends State<UserInfoRow> {
-  String? username;
+  String? userName;
   String? userProfile;
   bool isLoading = true; // ✅ 로딩 상태 추가
 
@@ -27,7 +28,7 @@ class _UserInfoRowState extends State<UserInfoRow> {
   }
 
   Future<void> fetchUserInfo() async {
-    String userId = widget.post['user_id'] ?? '';
+    String userId = widget.post.userId;
 
     if (userId.isEmpty) return; // ✅ user_id가 없으면 API 호출하지 않음
 
@@ -37,8 +38,8 @@ class _UserInfoRowState extends State<UserInfoRow> {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         setState(() {
-          username = data['username']; // ✅ API에서 받은 username
-          userProfile = data['profile_image']; // ✅ API에서 받은 프로필 이미지
+          userName = data.userName; // ✅ API에서 받은 userName
+          userProfile = data.profileImageUrl; // ✅ API에서 받은 프로필 이미지
           isLoading = false; // ✅ 로딩 상태 업데이트
         });
       } else {
@@ -71,16 +72,16 @@ class _UserInfoRowState extends State<UserInfoRow> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  isLoading ? '' : username ?? 'Unknown User',
+                  isLoading ? '' : userName ?? 'Unknown User',
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
-                Text(widget.post['country'] ?? 'South Korea', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                // Text(widget.post.country ?? 'South Korea', style: TextStyle(color: Colors.grey, fontSize: 12)),
               ],
             ),
           ],
         ),
         TimeAgoText(
-          createdAt: widget.post['created_at'], 
+          createdAt: formatTimestamp(widget.post.createdAt), 
           fontColor: Colors.grey, 
           fontSize: 12),
       ],

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../config.dart';
-import '../../screens/post_page.dart';
+import '../../pages/posts/post_page.dart';
 import '../utils/like_button.dart';
 
 class PostCard extends StatefulWidget {

@@ -58,7 +58,7 @@ class AuthService {
   // ─── Firestore 사용자 정보 등록 ─────────────────────────
 
   static Future<void> registerUserInFirestore({
-    required String username,
+    required String userName,
     required String countryCode,
     required String countryName,
     String? profileImageUrl,
@@ -76,14 +76,14 @@ class AuthService {
     final usersRef = FirebaseFirestore.instance.collection('users');
     final doc = await usersRef.doc(uid).get();
     if (doc.exists) {
-      debugPrint("⚠️ 이미 Firestore에 등록된 사용자입니다.");
+      // debugPrint("이미 Firestore에 등록된 사용자입니다.");
       return;
     }
 
     await usersRef.doc(uid).set({
       'user_id': uid,
       'email': email,
-      'username': username,
+      'user_name': userName,
       'profile_image': profileImageUrl ?? "",
       'bio': bio ?? "",
       'country_code': countryCode,

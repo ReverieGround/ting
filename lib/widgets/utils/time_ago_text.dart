@@ -1,58 +1,101 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart'; // DateFormat을 사용하기 위해 필요
+import 'package:cloud_firestore/cloud_firestore.dart'; // ✅ Firestore 임포트
 
-class TimeAgoText extends StatelessWidget {
-  final String? createdAt;
-  final double? fontSize; // ✅ 폰트 크기 (선택적)
-  final Color? fontColor; // ✅ 폰트 색상 (선택적)
+class TimeAgoText extends StatefulWidget {
+  final dynamic createdAt; // Input is a String (e.g., "2025-07-10T01:42:55.181000+00:00")
+  final double fontSize;
+  final Color fontColor;
 
   const TimeAgoText({
-    super.key,
+    Key? key,
     required this.createdAt,
-    this.fontSize = 12.0, // ✅ 기본값 설정
-    this.fontColor = Colors.grey, // ✅ 기본값 설정
-  });
+    this.fontSize = 12,
+    this.fontColor = Colors.grey,
+  }) : super(key: key);
 
-  /// ✅ "몇 시간 전" 또는 "yyyy년 MM월 dd일"로 변환
-  String timeAgo(DateTime date) {
-    final Duration difference = DateTime.now().difference(date);
+  @override
+  State<TimeAgoText> createState() => _TimeAgoTextState();
+}
 
-    if (difference.inDays < 1) {
-      if (difference.inHours < 1) {
-        return "${difference.inMinutes}분 전";
+class _TimeAgoTextState extends State<TimeAgoText> {
+  String _displayTime = ''; // This variable will store the formatted String to be displayed
+
+  @override
+  void initState() {
+    super.initState();
+    _updateDisplayTime();
+  }
+
+  @override
+  void didUpdateWidget(covariant TimeAgoText oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Only update if createdAt string has changed
+    if (oldWidget.createdAt != widget.createdAt) {
+      _updateDisplayTime();
+    }
+  }
+
+  void _updateDisplayTime() {
+    DateTime? dateTime;
+
+    try {
+      // Step 1: Handle Timestamp directly. This is the preferred method.
+      if (widget.createdAt is Timestamp) {
+        dateTime = (widget.createdAt as Timestamp).toDate();
+      } else if (widget.createdAt is String) {
+        // Step 2: If the data is a String, use DateFormat to parse it.
+        dateTime = DateFormat('yyyy. MM. dd HH:mm').parse(widget.createdAt);
+        
+      } else {
+        throw Exception('날짜 형식이 올바르지 않습니다.');
       }
-      return "${difference.inHours}시간 전";
-    } else if (difference.inDays < 30) {
-      return "${difference.inDays}일 전";
+
+      if (dateTime != null) {
+        _displayTime = _getTimeAgo(dateTime);
+      } else {
+        _displayTime = '날짜 오류';
+      }
+    } catch (e) {
+      _displayTime = '날짜 오류';
+    }
+
+    if (mounted) {
+      setState(() {});
+    }
+  }
+  
+  // Helper function to format time as "X ago" or "YYYY. MM. DD"
+  String _getTimeAgo(DateTime dateTime) {
+    final Duration diff = DateTime.now().difference(dateTime.toLocal()); // Convert to local time before calculating difference
+
+    if (diff.inSeconds < 60) {
+      return '방금 전';
+    } else if (diff.inMinutes < 60) {
+      return '${diff.inMinutes}분 전';
+    } else if (diff.inHours < 24) {
+      return '${diff.inHours}시간 전';
+    } else if (diff.inDays < 7) {
+      return '${diff.inDays}일 전';
+    } else if (diff.inDays < 30) {
+      // Using floor() to get whole weeks
+      return '${(diff.inDays / 7).floor()}주 전';
+    } else if (diff.inDays < 365) {
+      // Using floor() to get whole months
+      return '${(diff.inDays / 30).floor()}개월 전';
     } else {
-      return DateFormat('yyyy년 MM월 dd일').format(date);
+      // For more than a year, display full date
+      return DateFormat('yyyy. MM. dd').format(dateTime.toLocal());
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    
-    String relativeCreatedAt = '';
-    if (createdAt != null){
-      DateTime formattedCreatedAt;
-      try {
-        // 🔥 Firestore에서 ISO 8601 or GMT 형식으로 저장된 문자열 변환
-        formattedCreatedAt = DateFormat("EEE, dd MMM yyyy HH:mm:ss 'GMT'").parseUtc(createdAt!).toLocal();
-      } catch (e) {
-        formattedCreatedAt = DateTime.now(); // 변환 실패 시 현재 시간 사용
-      }
-      relativeCreatedAt = timeAgo(formattedCreatedAt);
-    }
-
-
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 5),
-      child: Text(
-        relativeCreatedAt,
-        style: TextStyle(
-          fontSize: fontSize, // ✅ 커스텀 폰트 크기 적용
-          color: fontColor, // ✅ 커스텀 색상 적용
-        ),
+    return Text(
+      _displayTime, // Display the formatted string
+      style: TextStyle(
+        fontSize: widget.fontSize,
+        color: widget.fontColor,
       ),
     );
   }

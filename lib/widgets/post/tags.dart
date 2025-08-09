@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
+import '../../models/post_data.dart';
 
 class PostTags extends StatelessWidget {
-  final Map<String, dynamic> post;
+  final PostData post;
 
   const PostTags({super.key, required this.post});
 
   @override
   Widget build(BuildContext context) {
-    List<dynamic> tags = post['tags'] as List<dynamic>? ?? [];
+    // List<dynamic> tags = post.tags as List<dynamic>? ?? [];
+    List<dynamic> tags =  [];
     
     return Wrap(
       spacing: 6,
