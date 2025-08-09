@@ -1,18 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'create/CreatePostPage.dart';
-import 'signup/SignupPage.dart';
 import 'profile/ProfilePage.dart';
-// import 'recipe/recipe_register_page.dart';
-import 'recipe/recipe_form_provider.dart';
 import 'login/LoginPage.dart';
 
 /// 액션 버튼 타입 정의
 enum VibeHeaderNavType {
   createPost,
-  createRecipe,
   profilePage,
-  registerPage,
   loginPage,
   none, 
 }
@@ -42,12 +36,8 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
     switch (type) {
       case VibeHeaderNavType.createPost:
         return Icons.local_dining_rounded; // camera_alt_rounded;
-      case VibeHeaderNavType.createRecipe:
-        return Icons.ramen_dining_rounded;
       case VibeHeaderNavType.profilePage:
         return Icons.person_rounded;
-      case VibeHeaderNavType.registerPage:
-        return Icons.app_registration_rounded;
       case VibeHeaderNavType.loginPage:
         return Icons.login_rounded;
       case VibeHeaderNavType.none:
@@ -60,16 +50,8 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
     switch (navigateType) {
       case VibeHeaderNavType.createPost:
         return const CreatePostPage();
-      case VibeHeaderNavType.createRecipe:
-        return ChangeNotifierProvider(
-          create: (_) => RecipeFormProvider(),
-          // child: const RecipeRegisterPage(),
-          child: const SizedBox(),
-        );
       case VibeHeaderNavType.profilePage:
         return const ProfilePage();
-      case VibeHeaderNavType.registerPage:
-        return const SignupPage();
       case VibeHeaderNavType.loginPage:
         return const LoginPage();
       case VibeHeaderNavType.none:

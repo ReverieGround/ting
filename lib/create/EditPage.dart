@@ -1,8 +1,8 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart'; // 이미지 선택을 위해 추가
-import 'dart:io'; // File 클래스를 위해 추가
-import 'package:image_cropper/image_cropper.dart'; // image_cropper 패키지 임포트
-import 'package:reorderable_grid_view/reorderable_grid_view.dart'; // reorderable_grid_view 패키지 임포트
+import 'package:image_picker/image_picker.dart';
+import 'package:image_cropper/image_cropper.dart'; 
+import 'package:reorderable_grid_view/reorderable_grid_view.dart'; 
 
 class EditPage extends StatefulWidget {
   final List<XFile>? initialFiles;

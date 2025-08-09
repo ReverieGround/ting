@@ -1,4 +1,4 @@
-// lib/ui/createPost/CreatePostPage.dart
+// CreatePostPage.dart
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 

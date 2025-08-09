@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../signup/SignupPage.dart';
 import '../services/AuthService.dart';
 import '../home/HomePage.dart';
 
@@ -237,26 +236,6 @@ class LoginPageState extends State<LoginPage> {
                     Color.fromARGB(255, 255, 222, 8),
                     Colors.white
                   ),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => SignupPage()),
-                      );
-                    },
-                    child: Container(
-                      // color: Colors.blue,
-                      margin: EdgeInsets.only(top: 24),
-                      child: Text(
-                        '이메일로 로그인',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.black38,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  )
                 ],
               ),
             ),
