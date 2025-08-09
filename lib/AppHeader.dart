@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'create/CreatePostPage.dart';
 import 'signup/SignupPage.dart';
 import 'profile/ProfilePage.dart';
-import 'recipe/recipe_register_page.dart';
+// import 'recipe/recipe_register_page.dart';
 import 'recipe/recipe_form_provider.dart';
 import 'login/LoginPage.dart';
 
@@ -63,7 +63,8 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
       case VibeHeaderNavType.createRecipe:
         return ChangeNotifierProvider(
           create: (_) => RecipeFormProvider(),
-          child: const RecipeRegisterPage(),
+          // child: const RecipeRegisterPage(),
+          child: const SizedBox(),
         );
       case VibeHeaderNavType.profilePage:
         return const ProfilePage();

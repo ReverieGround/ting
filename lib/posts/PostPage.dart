@@ -74,7 +74,7 @@ class _PostPageState extends State<PostPage> {
 
   @override
   Widget build(BuildContext context) {
-    List<dynamic> imageUrls = widget.post.imageUrls as List<dynamic>? ?? [];
+    List<dynamic> imageUrls = widget.post.imageUrls as List<dynamic>;
     double screenWidth = MediaQuery.of(context).size.width;    
     double imageHeight = MediaQuery.of(context).size.height / 2; 
     double postCommentHeight = 80.0;
