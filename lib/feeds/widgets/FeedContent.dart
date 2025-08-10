@@ -1,13 +1,16 @@
+// feeds/widgets/FeedContent.dart 
 import 'package:flutter/material.dart';
 
 class FeedContent extends StatelessWidget {
   final String? content;
   final List<dynamic> comments;
+  final Color fontColor;
 
   const FeedContent({
     Key? key,
     this.content,
     required this.comments,
+    this.fontColor=Colors.black,
   }) : super(key: key);
 
   @override
@@ -20,7 +23,7 @@ class FeedContent extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             child: Text(
               content!,
-              style: const TextStyle(fontSize: 16, color: Colors.black),
+              style: TextStyle(fontSize: 16, color: fontColor),
             ),
           ),
         if (comments.isNotEmpty)
@@ -28,7 +31,7 @@ class FeedContent extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             child: Text(
               '${comments[0]['user_name'] ?? '익명'}: ${comments[0]['content'] ?? ''}',
-              style: const TextStyle(fontSize: 14, color: Colors.black),
+              style: TextStyle(fontSize: 14, color: fontColor),
             ),
           ),
         const SizedBox(height: 8),

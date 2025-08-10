@@ -1,12 +1,14 @@
+// feeds/widgets/FeedHead.dart 
 import 'package:flutter/material.dart';
-import '../../widgets/utils/profile_avatar.dart'; 
-import '../../widgets/utils/time_ago_text.dart'; 
+import '../../common/widgets/ProfileAvatar.dart'; 
+import '../../common/widgets/TimeAgoText.dart'; 
 
 class FeedHead extends StatelessWidget { 
   final String profileImageUrl;
   final String userName;
   final String? userTitle;
   final String createdAt;
+  final Color fontColor; 
 
   const FeedHead({
     Key? key,
@@ -14,6 +16,7 @@ class FeedHead extends StatelessWidget {
     required this.userName,
     required this.createdAt,
     this.userTitle,
+    this.fontColor = Colors.black,
   }) : super(key: key);
 
   @override
@@ -46,16 +49,16 @@ class FeedHead extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: Colors.black,
+                        color: fontColor,
                         letterSpacing: -0.5,
                       ),
                     ),
                     Text(
                       userTitle ?? '',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w400,
-                        color: Colors.black,
+                        color: fontColor,
                       ),
                     ),
                   ],

@@ -1,27 +1,28 @@
 // lib/pages/profile/profile_page.dart
-
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
-// Firebase related imports
+// Firebase
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 
 // Common widgets
 import '../AppHeader.dart';
-import '../widgets/utils/profile_avatar.dart';
+import '../../common/widgets/ProfileAvatar.dart';
 
-// Custom models and widgets
+// Models & widgets
 import '../models/MyInfo.dart';
-import '../models/PostData.dart';
 import '../models/FeedData.dart';
 import 'widgets/UserStatsRow.dart';
 import 'widgets/PinnedFeedsGrid.dart';
 import 'widgets/StatusMessage.dart';
 import 'widgets/YumTab.dart';
-import '../services/AuthService.dart';
+
+// Services
+import '../services/UserService.dart';
+import '../services/PostService.dart';
+import '../services/ProfileService.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -30,127 +31,91 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStateMixin {
-  // Use the aliased to avoid conflict
-  late MyInfo myInfo;
-  bool isSaving = false; 
-  bool isLoading = true; 
-  List<PostData> allPosts = []; 
-  List<FeedData> pinnedFeeds = []; 
+  late MyInfo myInfo = MyInfo.empty();
+  bool isSaving = false;
+  bool isLoading = true;
+  List<FeedData> allFeeds = [];
+  List<FeedData> pinnedFeeds = [];
 
   late TabController _tabController;
   final TextEditingController statusMessageController = TextEditingController();
-  
+
+  final userService = UserService();
+  final postService = PostService();
+  late final profileService = ProfileService(
+    userService: userService,
+    postService: postService,
+  );
+
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this); // For 'Yum', 'Recipe', 'Guestbook'
-    _loadProfileData(); // Load all necessary profile data
+    _tabController = TabController(length: 3, vsync: this);
+    _loadProfileData();
   }
 
   Future<void> _loadProfileData() async {
-    setState(() {
-      isLoading = true; // Start loading
-    });
+    if (!mounted) return;
+    setState(() => isLoading = true);
 
     try {
-      String? targetUserId = await AuthService.getUserId();
-      
-      // Determine the user ID: if not provided, use current logged-in user
-      if (targetUserId == null) {
-        final currentUser = FirebaseAuth.instance.currentUser;
-        if (currentUser == null) {
-          debugPrint('No logged-in user.');
-          if (mounted) setState(() => isLoading = false);
-          return;
-        }
-        targetUserId = currentUser.uid;
-      }
-      // 1. Fetch User Info
-      final userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(targetUserId)
-          .get();
-      if (!userDoc.exists) {
-        debugPrint('User document does not exist.');
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid == null) {
         if (mounted) setState(() => isLoading = false);
         return;
       }
-      final userData = userDoc.data();
-      if (mounted) {
-        setState(() {
-          myInfo = MyInfo.fromJson(userData!);
-          statusMessageController.text = myInfo.statusMessage ?? ''; // Initialize controller
-        });
-      }
-      // 2. Fetch User Posts (including pinned posts)
-      final postsSnapshot = await FirebaseFirestore.instance
-          .collection("posts") // Assuming your posts are in "posts"
-          .where("user_id", isEqualTo: targetUserId)
-          .where("archived", isEqualTo: false) // Exclude archived posts
-          .orderBy("created_at", descending: true)
-          .limit(50) // Limit to a reasonable number
-          .get();
 
-      final List<PostData> fetchedPosts = postsSnapshot.docs.map((doc) { // Changed from PostData to PostData
-        final data = doc.data();
-        data['postId'] = doc.id; // Add document ID to the data map
-        
-        return PostData.fromMap(data); // Use your custom PostData.fromMap factory
-      }).toList();
-      // Filter pinned posts
-      // final List<PostData> filteredPinnedFeeds = fetchedPosts.where((post) => post.isPinned).toList(); // Changed from PostData to PostData
-      final List<FeedData> filteredPinnedFeeds =  [];
-
-      if (mounted) {
-        setState(() {
-          allPosts = fetchedPosts;
-          pinnedFeeds = filteredPinnedFeeds;
-          isLoading = false; // Loading finished
-        });
+      final result = await profileService.loadProfile(targetUserId: uid);
+      if (!mounted) return;
+      if (result == null) {
+        setState(() => isLoading = false);
+        return;
       }
+
+      // 비동기 변환은 setState 밖에서 전부 끝내기
+      final allFeedsBuilt = await Future.wait(
+        result.posts.map((p) => FeedData.create(post: p)),
+      );
+      
+      final pinnedFeedsBuilt = await Future.wait(
+        result.pinned.map((p) => FeedData.create(post: p)),
+      );
+
+      if (!mounted) return;
+      setState(() {
+        myInfo = result.myInfo;
+        statusMessageController.text = result.myInfo.statusMessage ?? '';
+        allFeeds = allFeedsBuilt;
+        pinnedFeeds = pinnedFeedsBuilt;
+        isLoading = false;
+      });
     } catch (e) {
-      debugPrint('Failed to load profile data: $e');
+      debugPrint('loadProfile error: $e');
       if (mounted) setState(() => isLoading = false);
     }
   }
 
-  // Method to handle profile image upload
+
   Future<void> _uploadProfileImage() async {
-    
     final picker = ImagePicker();
     final picked = await picker.pickImage(source: ImageSource.gallery);
-
     if (picked == null) return;
 
     try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) {
-        debugPrint("No logged-in user.");
-        return;
-      }
-      final fileName =
-          'profile_images/${user.uid}_${DateTime.now().millisecondsSinceEpoch}_${picked.name}';
-      final ref = FirebaseStorage.instance.ref().child(fileName);
-
-      await ref.putFile(File(picked.path));
-      final downloadUrl = await ref.getDownloadURL();
-
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .update({'profile_image': downloadUrl});
-
-      debugPrint('✅ Profile image uploaded and Firestore updated successfully.');
-      _loadProfileData(); // Reload all data to update UI
+      final url = await userService.uploadProfileImage(File(picked.path));
+      debugPrint(url != null ? '✅ Uploaded' : 'upload failed');
+      await _loadProfileData();
     } catch (e) {
-      debugPrint('Failed to upload image: $e');
+      debugPrint('uploadProfileImage error: $e');
     }
   }
 
-  Future<dynamic> _uploadStatusMessage(String modified) async{
-    return true;
+  Future<bool> _uploadStatusMessage(String modified) async {
+    final ok = await userService.updateStatusMessage(modified);
+    if (ok) await _loadProfileData();
+    return ok;
   }
-  // Disposable resources
+
   @override
   void dispose() {
     _tabController.dispose();
@@ -160,7 +125,6 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
 
   @override
   Widget build(BuildContext context) {
-    // Show a loading indicator if data is not ready
     if (isLoading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
@@ -171,7 +135,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
         showBackButton: false,
         backgroundColor: const Color.fromARGB(255, 255, 255, 255),
         titleWidget: Container(
-          margin: const EdgeInsets.only(top: 5), // Adjust margin as needed
+          margin: const EdgeInsets.only(top: 5),
           child: Row(
             children: [
               GestureDetector(
@@ -179,15 +143,15 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                   _showProfileImagePickerBottomSheet(context);
                 },
                 child: ProfileAvatar(
-                  profileUrl: myInfo.profileImage, // Safe due to myInfo null check above
+                  profileUrl: myInfo.profileImage,
                   size: 43,
                 ),
               ),
               const SizedBox(width: 12),
-              SizedBox( 
-                height: 45, 
+              SizedBox(
+                height: 45,
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween, // Distribute space
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(myInfo.userName, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
@@ -199,32 +163,29 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
           ),
         ),
       ),
-      body: CustomScrollView( // Use CustomScrollView for flexible scrolling behavior
+      body: CustomScrollView(
         slivers: [
-          // User Stats Row (PostData, Recipe, Follower)
+
           SliverToBoxAdapter(
             child: UserStatsRow(
-              yumCount: myInfo.postCount,   
+              yumCount: myInfo.postCount,
               recipeCount: myInfo.recipeCount,
               followerCount: myInfo.followerCount,
             ),
           ),
           SliverToBoxAdapter(
             child: StatusMessage(
-            initialMessage:  myInfo.statusMessage ?? '',
-            onSave: _uploadStatusMessage,
+              initialMessage: myInfo.statusMessage ?? '',
+              onSave: _uploadStatusMessage,
             ),
           ),
-          // Pinned Posts Grid
-          pinnedFeeds.isNotEmpty 
-          ? PinnedFeedsGrid(pinnedFeeds: pinnedFeeds)
-          : const SliverToBoxAdapter(child: SizedBox.shrink()),
-
-          // TabBar (Yum, Recipe, Guestbook) - Pinned to the top when scrolled
+          pinnedFeeds.isNotEmpty
+              ? PinnedFeedsGrid(pinnedFeeds: pinnedFeeds)
+              : const SliverToBoxAdapter(child: SizedBox.shrink()),
           SliverAppBar(
-            pinned: true, // Makes the TabBar stick to the top
-            backgroundColor: const Color.fromARGB(255, 255, 255, 255), // Match background
-            toolbarHeight: 0, // No actual app bar content above the tabs
+            pinned: true,
+            backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+            toolbarHeight: 0,
             bottom: TabBar(
               controller: _tabController,
               labelColor: Colors.black,
@@ -237,15 +198,13 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
               ],
             ),
           ),
-
-          // TabBarView content - Takes the remaining space
           SliverFillRemaining(
             child: TabBarView(
               controller: _tabController,
               children: [
-                YumTab(posts: allPosts),
-                Center(child: Text('Recipe Content (e.g., filtered posts for Recipe)')), // Placeholder
-                Center(child: Text('Guestbook Content')), // Placeholder
+                YumTab(feeds: allFeeds),
+                const Center(child: Text('Recipe Content (e.g., filtered posts for Recipe)')),
+                const Center(child: Text('Guestbook Content')),
               ],
             ),
           ),
@@ -254,7 +213,6 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
     );
   }
 
-  // Extracted the bottom sheet logic into a separate method for clarity
   void _showProfileImagePickerBottomSheet(BuildContext context) {
     const avatarList = [
       'https://firebasestorage.googleapis.com/v0/b/vibeyum-alpha.firebasestorage.app/o/profile_images%2Favatar-design.png?alt=media&token=f34a16cd-689d-464f-9c45-3859c66be0c0',
@@ -267,13 +225,10 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(16),
-          topRight: Radius.circular(16),
-        ),
+        borderRadius: BorderRadius.only(topLeft: Radius.circular(16), topRight: Radius.circular(16)),
       ),
       backgroundColor: Colors.white,
-      builder: (innerContext) { // Use innerContext to ensure correct navigator pop
+      builder: (innerContext) {
         return Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -287,16 +242,13 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                   const Text('프로필 사진 선택', style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16, color: Colors.black)),
                   InkWell(
                     onTap: () async {
-                      Navigator.pop(innerContext); // Pop this bottom sheet
-                      await _uploadProfileImage(); // Then upload new image
+                      Navigator.pop(innerContext);
+                      await _uploadProfileImage();
                     },
                     borderRadius: BorderRadius.circular(24),
                     child: Container(
                       padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade200,
-                        shape: BoxShape.circle,
-                      ),
+                      decoration: BoxDecoration(color: Colors.grey.shade200, shape: BoxShape.circle),
                       child: const Icon(Icons.photo_library, color: Colors.black87),
                     ),
                   )
@@ -311,22 +263,14 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                     onTap: () async {
                       final user = FirebaseAuth.instance.currentUser;
                       if (user != null) {
-                        await FirebaseFirestore.instance
-                            .collection('users')
-                            .doc(user.uid)
-                            .update({'profile_image': url});
-                        Navigator.pop(innerContext); // Pop bottom sheet
-                        _loadProfileData(); // Refresh user info
+                        await FirebaseFirestore.instance.collection('users').doc(user.uid).update({'profile_image': url});
+                        Navigator.pop(innerContext);
+                        _loadProfileData();
                       }
                     },
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(12),
-                      child: Image.network(
-                        url,
-                        width: 60,
-                        height: 60,
-                        fit: BoxFit.cover,
-                      ),
+                      child: Image.network(url, width: 60, height: 60, fit: BoxFit.cover),
                     ),
                   );
                 }).toList(),

@@ -12,12 +12,16 @@ class FeedData {
   final PostData post;
   final bool isPinned;
   final bool isLikedByUser;
+  final int numComments;
+  final int numLikes;
 
   FeedData._internal({
     required this.post,
     required this.user,
     required this.isPinned,
     required this.isLikedByUser,
+    required this.numComments,
+    required this.numLikes,
   });
 
   static Future<FeedData> create({
@@ -25,6 +29,8 @@ class FeedData {
     UserData? user,
     bool? isPinned,
     bool? isLikedByUser,
+    int? numComments,
+    int? numLikes,
   }) async {
     UserData fetchedUser;
 
@@ -67,29 +73,51 @@ class FeedData {
       }
     }
 
-    bool fetchedIsLikedByUser = isLikedByUser ?? false;
-    if (isLikedByUser == null) {
-      try {
-        final currentUserId = FirebaseAuth.instance.currentUser?.uid;
-        if (currentUserId != null) {
-          final likeDoc = await FirebaseFirestore.instance
-              .collection('posts')
-              .doc(post.postId)
-              .collection('likes')
-              .doc(currentUserId)
-              .get();
-          fetchedIsLikedByUser = likeDoc.exists;
-        }
-      } catch (e) {
-        debugPrint('Error fetching like status for post ${post.postId}: $e');
+    int? fetchedNumLikes = numLikes ?? 0;
+    int? fetchedNumComments = numComments ?? 0;
+    bool? fetchedIsLikedByUser = isLikedByUser;
+
+    try {
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      final postRef = FirebaseFirestore.instance.collection('posts').doc(post.postId);
+      final likesCol = postRef.collection('likes');
+      final commentsCol = postRef.collection('comments');
+
+      final futures = <Future>[];
+      
+      // 좋아요 수
+      if (numLikes == null) {
+        futures.add(
+          likesCol.count().get().then((snap) => fetchedNumLikes = snap.count),
+        );
       }
+
+      // 내가 좋아요 눌렀는지
+      if (uid != null && isLikedByUser == null) {
+        futures.add(
+          likesCol.doc(uid).get().then((doc) => fetchedIsLikedByUser = doc.exists),
+        );
+      }
+
+      // 댓글 수
+      if (numComments == null) {
+        futures.add(
+          commentsCol.count().get().then((snap) => fetchedNumComments = snap.count),
+        );
+      }
+
+      await Future.wait(futures);
+    } catch (e) {
+      debugPrint('fetch meta failed for post ${post.postId}: $e');
     }
 
     return FeedData._internal(
       post: post,
       user: fetchedUser,
       isPinned: fetchedIsPinned,
-      isLikedByUser: fetchedIsLikedByUser,
+      isLikedByUser: fetchedIsLikedByUser!,
+      numComments: fetchedNumComments!,
+      numLikes: fetchedNumLikes!,
     );
   }
 }

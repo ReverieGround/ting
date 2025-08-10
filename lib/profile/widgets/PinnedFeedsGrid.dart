@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/FeedData.dart'; 
-import '../../nearby/widgets/FeedCard.dart'; 
+import '../../feeds/widgets/FeedCard.dart'; 
 
 class PinnedFeedsGrid extends StatelessWidget {
   final List<FeedData> pinnedFeeds;
@@ -29,10 +29,11 @@ class PinnedFeedsGrid extends StatelessWidget {
         (context, index) {
           final feed = pinnedFeeds[index];
           return FeedCard(
-            imageUrl: feed.post.imageUrls != null ? feed.post.imageUrls![0] : 'https://placehold.co/200x260/E0E0E0/000000?text=No+Image',
-            nickname: feed.user.userName,
-            profileUrl: feed.user.profileImage!,
-            postId: feed.post.postId,
+            feed: feed,
+            // imageUrl: feed.post.imageUrls != null ? feed.post.imageUrls![0] : 'https://placehold.co/200x260/E0E0E0/000000?text=No+Image',
+            // nickname: feed.user.userName,
+            // profileUrl: feed.user.profileImage!,
+            // postId: feed.post.postId,
           );
         },
         childCount: pinnedFeeds.length,

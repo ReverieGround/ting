@@ -1,5 +1,4 @@
-// lib/widgets/custom_post_tag.dart (예시 경로)
-
+// feeds/widgets/FeedTag.dart 
 import 'package:flutter/material.dart';
 
 final Map<String, String> assetMap = {

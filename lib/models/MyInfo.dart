@@ -2,14 +2,14 @@
 class MyInfo {
   final String userName;
   final String location;
-  final int recipeCount; // 'Yum'에 매핑될 수 있음 (실제 앱에서는 'yumCount'나 'likedRecipeCount' 등으로 명확히 하는 것이 좋음)
-  final int postCount; // 'Recipe'에 매핑될 수 있음 (실제 앱에서는 'recipeCount' 등으로 명확히 하는 것이 좋음)
-  final int receivedLikeCount; // 이 필드는 현재 UserStatsRow에서 'Follower' 외에 사용되지 않음. 필요에 따라 활용
+  final int recipeCount;
+  final int postCount;
+  final int receivedLikeCount;
   final int followerCount;
   final int followingCount;
   final String? profileImage;
   final String? statusMessage;
-  final String userTitle; // '생존형 자취 음식 전문가' 같은 필드 (API 필드명은 'user_title'로 가정)
+  final String userTitle;
 
   MyInfo({
     required this.userName,
@@ -24,11 +24,26 @@ class MyInfo {
     required this.userTitle,
   });
 
+  factory MyInfo.empty() {
+    return MyInfo(
+      userName: '',
+      userTitle: '',
+      profileImage: '',
+      statusMessage: '',
+      postCount: 0,
+      recipeCount: 0,
+      followerCount: 0,
+      location: '',
+      receivedLikeCount: 0,
+      followingCount: 0,
+    );
+  }
+
   // JSON 데이터 (Map<String, dynamic>)로부터 MyInfo 객체를 생성하는 팩토리 생성자
   factory MyInfo.fromJson(Map<String, dynamic> json) {
     return MyInfo(
       userName: json['user_name'] ?? '',
-      location: json['location'] ?? 'Seoul',
+      location: json['location'] ?? '서울시',
       statusMessage: json['status_message'] ?? '',
       recipeCount: json['recipe_count'] ?? 0,
       postCount: json['post_count'] ?? 0,
@@ -82,4 +97,5 @@ class MyInfo {
       'user_title': userTitle,
     };
   }
+  
 }

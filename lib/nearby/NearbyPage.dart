@@ -1,12 +1,12 @@
-// lib/pages/nearby/page.dart
+// NearbyPage.dart
 
 import 'package:flutter/material.dart';
 
 import 'widgets/MainHeader.dart';
 import 'widgets/FeedGrid.dart';  
 import '../models/FeedData.dart'; 
-import '../../services/feed_service.dart';
-import '../../services/user_service.dart';
+import '../../services/FeedService.dart';
+import '../../services/UserService.dart';
 
 class NearbyPage extends StatefulWidget {
   const NearbyPage({super.key});
@@ -170,9 +170,11 @@ class _NearbyPageState extends State<NearbyPage> with SingleTickerProviderStateM
       onRefresh: () => _loadFeeds(tabIndex: _tabController.index),
       child: CustomScrollView(
         slivers: [
-          SliverPadding( // ✅ Padding 대신 SliverPadding 사용
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-            sliver: FeedGrid(feeds: feeds), // FeedGrid는 이미 SliverGrid를 포함하고 있습니다.
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 4.0),
+            sliver: FeedGrid(
+              feeds: feeds
+            ),
           ),
         ],
       ),

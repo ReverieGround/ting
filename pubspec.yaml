@@ -147,5 +147,6 @@ flutter:
     - assets/search.png
     - assets/fork.png
     - assets/fork_color.png
+    - assets/fork_white.png
     - assets/comment.png
     

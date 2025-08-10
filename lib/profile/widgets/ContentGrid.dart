@@ -8,7 +8,7 @@ class ContentGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(8),
       child: GridView.builder(
         physics: const NeverScrollableScrollPhysics(),
         itemCount: 20,

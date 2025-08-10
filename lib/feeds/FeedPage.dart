@@ -1,9 +1,9 @@
-// lib/pages/feed/feed_page.dart
+// feeds/FeedPage.dart
 import 'package:flutter/material.dart';
 import 'widgets/FeedCard.dart';
 import '../create/CreatePostPage.dart';
 import '../models/FeedData.dart';
-import '../../services/feed_service.dart'; // ✅ FeedService 임포트
+import '../../services/FeedService.dart'; // ✅ FeedService 임포트
 
 class FeedPage extends StatefulWidget {
   const FeedPage({

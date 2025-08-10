@@ -1,5 +1,4 @@
-// lib/widgets/comment_widget.dart
-
+// feeds/widgets/FeedReplyIcon.dart 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -27,6 +26,8 @@ class FeedReplyIcon extends StatefulWidget {
   final double fontSize;
   final double iconSize;
 
+  final Color fontColor;
+
   const FeedReplyIcon({
     super.key,
     required this.postId,
@@ -34,6 +35,7 @@ class FeedReplyIcon extends StatefulWidget {
     this.onCommentPosted,
     this.fontSize = 14.0,
     this.iconSize = 20.0,
+    this.fontColor = Colors.black,
   });
 
   @override
@@ -236,14 +238,14 @@ class _CommentWidgetState extends State<FeedReplyIcon> {
             iconPath,
             width: widget.iconSize,
             height: widget.iconSize,
-            color: Colors.black,
+            color: widget.fontColor,
           ),
           const SizedBox(width: 6),
           Text(
             formatNumber(_currentCommentCount),
             style: TextStyle(
               fontSize: widget.fontSize,
-              color: Colors.black,
+              color: widget.fontColor,
             ),
           ),
         ],

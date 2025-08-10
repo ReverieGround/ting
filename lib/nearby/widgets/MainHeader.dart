@@ -1,4 +1,4 @@
-// lib/pages/nearby/widgets/main_header.dart
+// widgets/MainHeader.dart
 
 import 'package:flutter/material.dart';
 import 'FilterBar.dart';

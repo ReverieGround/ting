@@ -1,4 +1,5 @@
-// lib/pages/nearby/widgets/filter_bar.dart
+// widgets/FilterBar.dart
+
 import 'package:flutter/material.dart';
 
 class FilterBar extends StatelessWidget {

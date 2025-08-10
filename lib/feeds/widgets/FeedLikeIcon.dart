@@ -1,4 +1,4 @@
-// lib/widgets/like_widget.dart
+// feeds/widgets/FeedLikeIcon.dart 
 import 'package:flutter/material.dart';
 import '../../services/PostService.dart'; 
 
@@ -22,6 +22,7 @@ class FeedLikeIcon extends StatefulWidget {
   final Function(int newLikeCount, bool newIsLiked)? onToggleCompleted;
   final double fontSize;
   final double iconSize;
+  final Color fontColor;
 
   const FeedLikeIcon({
     super.key,
@@ -31,6 +32,7 @@ class FeedLikeIcon extends StatefulWidget {
     this.onToggleCompleted,
     this.fontSize = 14.0,
     this.iconSize = 20.0,
+    this.fontColor = Colors.black,
   });
 
   @override
@@ -126,13 +128,14 @@ class _LikeWidgetState extends State<FeedLikeIcon> {
             _currentHasLiked ? pinkIconPath : blackIconPath,
             width: widget.iconSize,
             height: widget.iconSize,
+            color: _currentHasLiked ? null : widget.fontColor,
           ),
           const SizedBox(width: 6),
           Text(
             formatNumber(_currentLikeCount),
             style: TextStyle(
               fontSize: widget.fontSize,
-              color: Colors.black,
+              color: widget.fontColor,
             ),
           ),
         ],
