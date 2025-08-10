@@ -15,9 +15,7 @@ class UserStatsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint('$yumCount');
-    debugPrint('$recipeCount');
-    debugPrint('$followerCount');
+    
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
       child: Row(
