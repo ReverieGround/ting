@@ -5,12 +5,14 @@ class UserStatsRow extends StatelessWidget {
   final int yumCount;
   final int recipeCount;
   final int followerCount;
+  final int followingCount;
 
   const UserStatsRow({
     super.key,
     required this.yumCount,
     required this.recipeCount,
     required this.followerCount,
+    required this.followingCount,
   });
 
   @override
@@ -24,12 +26,14 @@ class UserStatsRow extends StatelessWidget {
           _buildStatItem(context, 'Yum', yumCount),
           _buildStatItem(context, 'Recipe', recipeCount),
           _buildStatItem(context, 'Follower', followerCount, addComma: true),
+          _buildStatItem(context, 'Following', followingCount, addComma: true),
         ],
       ),
     );
   }
 
   Widget _buildStatItem(BuildContext context, String label, int count, {bool addComma = false}) {
+    
     String displayCount = addComma ? count.toString().replaceAllMapped(
       RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
       (Match m) => '${m[1]},',

@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import '../models/MyInfo.dart';
+import '../models/ProfileInfo.dart';
 
 class UserService {
   final _fs = FirebaseFirestore.instance;
@@ -12,53 +12,125 @@ class UserService {
   final _storage = FirebaseStorage.instance;
 
   Future<String?> getCurrentUserId() async => _auth.currentUser?.uid;
-  
-  Future<MyInfo?> fetchUserRaw(String uid) async {
+
+  Future<int> _subcolCount(String uid, String sub) async {
+    final agg = await _fs.collection('users').doc(uid).collection(sub).count().get();
+    return agg.count ?? 0;
+  }
+
+  Future<int> _postCount(String ownerUid, String viewerUid) async {
+    final isOwner = ownerUid == viewerUid;
+
+    // 오너면 팔로우 조회 불필요
+    List<String> visibilities;
+    if (isOwner) {
+      visibilities = ['PUBLIC', 'FOLLOWER', 'PRIVATE'];
+    } else {
+      final isFollower = await isFollowing(viewerUid, ownerUid);
+      visibilities = isFollower ? ['PUBLIC', 'FOLLOWER'] : ['PUBLIC'];
+    }
+    
     try {
-      // 1. 유저 기본 정보
-      final doc = await _fs.collection('users').doc(uid).get();
+      final agg = await _fs
+          .collection('posts')
+          .where('user_id', isEqualTo: ownerUid)
+          .where('archived', isEqualTo: false)
+          .where('visibility', whereIn: visibilities)
+          .count()
+          .get();
+      return agg.count ?? 0;
+    } on FirebaseException catch (e) {
+      // 혹시 permission-denied가 떠도 프로필 자체가 안 죽게 방어
+      if (e.code == 'permission-denied') return 0;
+      rethrow;
+    }
+  }
+  
+
+  // 내가 target을 팔로잉 중?
+  Future<bool> isFollowing(String viewerUid, String targetUid) async {
+    final d = await _fs.collection('users').doc(viewerUid).collection('following').doc(targetUid).get();
+    return d.exists;
+  }
+
+  // 내가 target을 차단했나?
+  Future<bool> isBlocked(String viewerUid, String targetUid) async {
+    final d = await _fs.collection('users').doc(viewerUid).collection('blocks').doc(targetUid).get();
+    return d.exists;
+
+  }
+  Future<ProfileInfo?> fetchUserForViewer(String targetUid, {String? viewerUid}) async {
+
+    try {
+      viewerUid ??= _auth.currentUser?.uid;
+      if (viewerUid == null) return null;
+
+      // 사전 차단 조회 제거: 규칙에서 get 시점에 차단 판단
+      DocumentSnapshot<Map<String, dynamic>> doc;
+      try {
+        doc = await _fs.collection('users').doc(targetUid).get();
+      } on FirebaseException catch (e) {
+        if (e.code == 'permission-denied') {
+          // 상호 차단 등으로 규칙에서 거절됨
+          return null;
+        }
+        rethrow;
+      }
+      
       if (!doc.exists) return null;
       final data = Map<String, dynamic>.from(doc.data()!);
 
-      // 2. 팔로워 수
-      final followersSnap = await _fs
-          .collection('users')
-          .doc(uid)
-          .collection('followers')
-          .get();
-      final followerCount = followersSnap.size;
+      data.remove('email');
+      data.remove('phone');
+  
+      final followerCount  = await _subcolCount(targetUid, 'followers');
+      final followingCount = await _subcolCount(targetUid, 'following');
 
-      // 3. 게시물 수 (archived 제외)
-      final postsSnap = await _fs
-          .collection('posts')
-          .where('user_id', isEqualTo: uid)
-          .where('archived', isEqualTo: false)
-          .get();
-      final postCount = postsSnap.size;
+      // 타인의 blocks는 비공개: 본인일 때만 카운트
+      int? blockCount;
+      if (viewerUid == targetUid) {
+        blockCount = await _subcolCount(targetUid, 'blocks');
+      }
 
-      // 4. 레시피 수 (아직 기록 안 함 → 0)
-      final recipeCount = 0;
+      final postCount = await _postCount(targetUid, viewerUid);
 
-      // 5. 데이터에 추가
-      data['follower_count'] = followerCount;
-      data['post_count'] = postCount;
-      data['recipe_count'] = recipeCount;
+      data['follower_count']  = followerCount;
+      data['following_count'] = followingCount;
+      data['post_count']      = postCount;
+      data['recipe_count']    = 0;
+      if (blockCount != null) data['block_count'] = blockCount;
+      
+      if (viewerUid == targetUid) {
+        // 뷰어 관점 플래그
+        data['viewer_is_following'] = await isFollowing(viewerUid, targetUid);
+        // 이 플래그는 뷰어의 blocks만 조회하므로 허용됨
+        data['viewer_blocked']      = await isBlocked(viewerUid, targetUid);
+      }
 
-      final myInfo = MyInfo.fromJson(data);
-      return myInfo;
+      return ProfileInfo.fromJson(data);
     } catch (e) {
-      debugPrint('fetchUserRaw error: $e');
+      debugPrint('fetchUserForViewer error: $e');
       return null;
     }
   }
 
-  Future<String?> fetchUserRegion() async {
-    final uid = _auth.currentUser?.uid;
+  // 필요 시 유지(호출부 점진 교체 가능)
+  Future<ProfileInfo?> fetchUserRaw(String uid) async {
+    final me = _auth.currentUser?.uid;
+    if (me == null) return null;
+    if (uid == me) {
+      return fetchUserForViewer(uid, viewerUid: me);                   // 내 프로필: 오너 권한/카운트까지 안전
+    } else {
+      return fetchUserForViewer(uid, viewerUid: me); // 타인 프로필: 차단/가시성 기준
+    }
+  }
+
+  Future<String?> fetchUserRegion({String? targetUid}) async {
+    final uid = targetUid ?? _auth.currentUser?.uid;
     if (uid == null) return null;
     try {
-      final data = await fetchUserRaw(uid);
-      if (data == null) return null;
-      return data.location as String?;
+      final info = await fetchUserForViewer(uid);
+      return info?.location;
     } catch (e) {
       debugPrint('fetchUserRegion error: $e');
       return null;

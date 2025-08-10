@@ -13,9 +13,21 @@ class PostService {
     int limit = 50,
     bool excludeArchived = true,
   }) async {
+    final viewerUid = _auth.currentUser?.uid;
+    if (viewerUid == null) return [];
+
+    // 뷰어 기준 가시성 결정
+    final bool isOwner = viewerUid == userId;
+    final bool isFollower = await _isFollowing(viewerUid, userId); // 아래 보조 함수
+
+    final List<String> canSee = isOwner
+        ? ['PUBLIC', 'FOLLOWER', 'PRIVATE']
+        : (isFollower ? ['PUBLIC', 'FOLLOWER'] : ['PUBLIC']);
+
     Query<Map<String, dynamic>> q = _fs
         .collection('posts')
         .where('user_id', isEqualTo: userId)
+        .where('visibility', whereIn: canSee) // ★ 핵심
         .orderBy('created_at', descending: true)
         .limit(limit);
 
@@ -27,9 +39,20 @@ class PostService {
 
     return snap.docs.map((d) {
       final map = Map<String, dynamic>.from(d.data());
-      map['post_id'] = d.id; // PostData.fromMap 호환
+      map['post_id'] = d.id;
       return PostData.fromMap(map);
     }).toList();
+  }
+
+  // 내부용 팔로우 체크(이미 있으면 그거 쓰세요)
+  Future<bool> _isFollowing(String viewerUid, String ownerUid) async {
+    final doc = await _fs
+        .collection('users')
+        .doc(ownerUid)
+        .collection('followers')
+        .doc(viewerUid)
+        .get();
+    return doc.exists;
   }
 
   Future<List<PostData>> fetchPinnedPosts({
@@ -43,7 +66,7 @@ class PostService {
         .collection('users')
         .doc(uid)
         .collection('pinnedPosts')
-        .orderBy('createdAt', descending: true)
+        .orderBy('created_at', descending: true)
         .limit(limit)
         .get();
 

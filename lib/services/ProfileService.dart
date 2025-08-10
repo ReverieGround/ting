@@ -18,8 +18,8 @@ class ProfileService {
     String? uid = targetUserId ?? _auth.currentUser?.uid;
     if (uid == null) return null;
 
-    final myInfo = await userService.fetchUserRaw(uid);
-    if (myInfo == null) return null;
+    final profileInfo = await userService.fetchUserRaw(uid);
+    if (profileInfo == null) return null;
 
     final posts = await postService.fetchUserPosts(
       userId: uid,
@@ -32,7 +32,7 @@ class ProfileService {
     );
 
     return ProfileData(
-      myInfo: myInfo,
+      profileInfo: profileInfo,
       posts: posts,
       pinned: pinned,
     );

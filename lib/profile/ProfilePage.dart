@@ -12,12 +12,14 @@ import '../AppHeader.dart';
 import '../../common/widgets/ProfileAvatar.dart';
 
 // Models & widgets
-import '../models/MyInfo.dart';
+import '../models/ProfileInfo.dart';
 import '../models/FeedData.dart';
 import 'widgets/UserStatsRow.dart';
 import 'widgets/PinnedFeedsGrid.dart';
 import 'widgets/StatusMessage.dart';
 import 'widgets/YumTab.dart';
+import 'widgets/FollowButton.dart';
+import 'GuestBookPage.dart';
 
 // Services
 import '../services/UserService.dart';
@@ -25,15 +27,21 @@ import '../services/PostService.dart';
 import '../services/ProfileService.dart';
 
 class ProfilePage extends StatefulWidget {
-  const ProfilePage({super.key});
+  final String? userId;
+
+  const ProfilePage({
+    super.key,
+    this.userId,
+  });
   @override
   State<ProfilePage> createState() => _ProfilePageState();
 }
 
 class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStateMixin {
-  late MyInfo myInfo = MyInfo.empty();
-  bool isSaving = false;
-  bool isLoading = true;
+  late ProfileInfo profileInfo = ProfileInfo.empty();
+  bool isLoading = true;          // 전체 페이지 스피너(초기 1회)
+  bool isFeedsLoading = false;    // 탭(피드) 영역 스피너
+  String userId = '';
   List<FeedData> allFeeds = [];
   List<FeedData> pinnedFeeds = [];
 
@@ -51,76 +59,72 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    _loadProfileData();
+    userId = widget.userId ?? FirebaseAuth.instance.currentUser?.uid ?? "";
+    _stagedFirstLoad(); // <= 변경: 단계적 초기 로딩
   }
 
-  Future<void> _loadProfileData() async {
+  Future<bool> _saveStatusMessage(String text) async {
+    final ok = await userService.updateStatusMessage(text.trim());
+    if (!mounted) return ok;
+    if (ok) {
+      setState(() {
+        profileInfo = profileInfo.copyWith(statusMessage: text.trim());
+      });
+    }
+    return ok;
+  }
+
+  // 1단계: 프로필만 먼저
+  // 2단계: 피드/고정피드
+  Future<void> _stagedFirstLoad() async {
     if (!mounted) return;
     setState(() => isLoading = true);
 
     try {
-      final uid = FirebaseAuth.instance.currentUser?.uid;
-      if (uid == null) {
+      // 1) 프로필 먼저
+      final info = await userService.fetchUserForViewer(userId);
+      if (mounted && info != null) {
+        setState(() {
+          profileInfo = info;
+          statusMessageController.text = info.statusMessage ?? '';
+          isLoading = false;
+        });
+      } else {
         if (mounted) setState(() => isLoading = false);
-        return;
       }
 
-      final result = await profileService.loadProfile(targetUserId: uid);
+      // 2) 피드
       if (!mounted) return;
-      if (result == null) {
-        setState(() => isLoading = false);
+      setState(() => isFeedsLoading = true);
+
+      final result = await profileService.loadProfile(targetUserId: userId);
+      if (!mounted || result == null) {
+        if (mounted) setState(() => isFeedsLoading = false);
         return;
       }
 
-      // 비동기 변환은 setState 밖에서 전부 끝내기
       final allFeedsBuilt = await Future.wait(
         result.posts.map((p) => FeedData.create(post: p)),
       );
-      
       final pinnedFeedsBuilt = await Future.wait(
         result.pinned.map((p) => FeedData.create(post: p)),
       );
 
       if (!mounted) return;
       setState(() {
-        myInfo = result.myInfo;
-        statusMessageController.text = result.myInfo.statusMessage ?? '';
         allFeeds = allFeedsBuilt;
         pinnedFeeds = pinnedFeedsBuilt;
-        isLoading = false;
+        isFeedsLoading = false;
       });
     } catch (e) {
-      debugPrint('loadProfile error: $e');
-      if (mounted) setState(() => isLoading = false);
+      debugPrint('stagedFirstLoad error: $e');
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+          isFeedsLoading = false;
+        });
+      }
     }
-  }
-
-
-  Future<void> _uploadProfileImage() async {
-    final picker = ImagePicker();
-    final picked = await picker.pickImage(source: ImageSource.gallery);
-    if (picked == null) return;
-
-    try {
-      final url = await userService.uploadProfileImage(File(picked.path));
-      debugPrint(url != null ? '✅ Uploaded' : 'upload failed');
-      await _loadProfileData();
-    } catch (e) {
-      debugPrint('uploadProfileImage error: $e');
-    }
-  }
-
-  Future<bool> _uploadStatusMessage(String modified) async {
-    final ok = await userService.updateStatusMessage(modified);
-    if (ok) await _loadProfileData();
-    return ok;
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    statusMessageController.dispose();
-    super.dispose();
   }
 
   @override
@@ -128,6 +132,8 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
     if (isLoading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
+    final me = FirebaseAuth.instance.currentUser?.uid;
+    final isOwner = me != null && me == userId; // 내가 보는 내 프로필?
 
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
@@ -138,14 +144,9 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
           margin: const EdgeInsets.only(top: 5),
           child: Row(
             children: [
-              GestureDetector(
-                onTap: () {
-                  _showProfileImagePickerBottomSheet(context);
-                },
-                child: ProfileAvatar(
-                  profileUrl: myInfo.profileImage,
-                  size: 43,
-                ),
+              ProfileAvatar(
+                profileUrl: profileInfo.profileImage,
+                size: 43,
               ),
               const SizedBox(width: 12),
               SizedBox(
@@ -154,8 +155,8 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(myInfo.userName, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
-                    Text(myInfo.userTitle, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w400, color: Colors.black)),
+                    Text(profileInfo.userName, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+                    Text(profileInfo.userTitle, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w400, color: Colors.black)),
                   ],
                 ),
               ),
@@ -165,23 +166,42 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
       ),
       body: CustomScrollView(
         slivers: [
-
           SliverToBoxAdapter(
             child: UserStatsRow(
-              yumCount: myInfo.postCount,
-              recipeCount: myInfo.recipeCount,
-              followerCount: myInfo.followerCount,
+              yumCount: profileInfo.postCount,
+              recipeCount: profileInfo.recipeCount,
+              followerCount: profileInfo.followerCount,
+              followingCount: profileInfo.followingCount,
             ),
           ),
           SliverToBoxAdapter(
             child: StatusMessage(
-              initialMessage: myInfo.statusMessage ?? '',
-              onSave: _uploadStatusMessage,
+              initialMessage: profileInfo.statusMessage ?? '',
+              onSave: isOwner ? _saveStatusMessage : (_) async => false,
+              readOnly: !isOwner,
             ),
           ),
-          pinnedFeeds.isNotEmpty
-              ? PinnedFeedsGrid(pinnedFeeds: pinnedFeeds)
-              : const SliverToBoxAdapter(child: SizedBox.shrink()),
+          if (!isOwner)
+            SliverToBoxAdapter(
+              child: FollowButton(
+                targetUid: userId,
+                onChanged: (isNowFollowing) {
+                  if (!mounted) return;
+                  final next = profileInfo.followerCount + (isNowFollowing ? 1 : -1);
+                  setState(() {
+                    profileInfo = profileInfo.copyWith(
+                      followerCount: next < 0 ? 0 : next,
+                    );
+                  });
+                },
+              ),
+            ),
+          // 핀 영역: 로딩 중엔 얇은 placeholder
+          if (pinnedFeeds.isNotEmpty)
+            PinnedFeedsGrid(pinnedFeeds: pinnedFeeds)
+          else
+            const SliverToBoxAdapter(child: SizedBox(height: 8)),
+
           SliverAppBar(
             pinned: true,
             backgroundColor: const Color.fromARGB(255, 255, 255, 255),
@@ -202,83 +222,25 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
             child: TabBarView(
               controller: _tabController,
               children: [
-                YumTab(feeds: allFeeds),
+                // 피드 탭: 로딩 스피너만 따로
+                if (isFeedsLoading)
+                  const Center(child: CircularProgressIndicator())
+                else
+                  YumTab(feeds: allFeeds),
+
                 const Center(child: Text('Recipe Content (e.g., filtered posts for Recipe)')),
-                const Center(child: Text('Guestbook Content')),
+                // const Center(child: Text('Guestbook Content')),
+                // GuestBookPage(),
+                GuestBookPage(
+                  heroNamespace: 'guestbook_tab_1',
+                  targetUserId: userId,
+                  currentUserId: FirebaseAuth.instance.currentUser?.uid ?? 'guest', // 뷰어
+                ),
               ],
             ),
           ),
         ],
       ),
-    );
-  }
-
-  void _showProfileImagePickerBottomSheet(BuildContext context) {
-    const avatarList = [
-      'https://firebasestorage.googleapis.com/v0/b/vibeyum-alpha.firebasestorage.app/o/profile_images%2Favatar-design.png?alt=media&token=f34a16cd-689d-464f-9c45-3859c66be0c0',
-      'https://firebasestorage.googleapis.com/v0/b/vibeyum-alpha.firebasestorage.app/o/profile_images%2Fbusinesswoman.png?alt=media&token=6fa85751-6fff-42e2-91d9-32d114167352',
-      'https://firebasestorage.googleapis.com/v0/b/vibeyum-alpha.firebasestorage.app/o/profile_images%2Fprogrammer.png?alt=media&token=ed21ed93-f845-42b9-8ec4-6d47f6e2650c',
-      'https://firebasestorage.googleapis.com/v0/b/vibeyum-alpha.firebasestorage.app/o/profile_images%2Fwoman%20(1).png?alt=media&token=4494aa07-e112-489e-b053-7555d483c02c',
-      'https://firebasestorage.googleapis.com/v0/b/vibeyum-alpha.firebasestorage.app/o/profile_images%2Fwoman.png?alt=media&token=4acd3f2f-3a19-4289-858e-e9fe929b5e91',
-    ];
-
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(topLeft: Radius.circular(16), topRight: Radius.circular(16)),
-      ),
-      backgroundColor: Colors.white,
-      builder: (innerContext) {
-        return Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const Text('프로필 사진 선택', style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16, color: Colors.black)),
-                  InkWell(
-                    onTap: () async {
-                      Navigator.pop(innerContext);
-                      await _uploadProfileImage();
-                    },
-                    borderRadius: BorderRadius.circular(24),
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(color: Colors.grey.shade200, shape: BoxShape.circle),
-                      child: const Icon(Icons.photo_library, color: Colors.black87),
-                    ),
-                  )
-                ],
-              ),
-              const SizedBox(height: 16),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: avatarList.map((url) {
-                  return GestureDetector(
-                    onTap: () async {
-                      final user = FirebaseAuth.instance.currentUser;
-                      if (user != null) {
-                        await FirebaseFirestore.instance.collection('users').doc(user.uid).update({'profile_image': url});
-                        Navigator.pop(innerContext);
-                        _loadProfileData();
-                      }
-                    },
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.network(url, width: 60, height: 60, fit: BoxFit.cover),
-                    ),
-                  );
-                }).toList(),
-              ),
-            ],
-          ),
-        );
-      },
     );
   }
 }

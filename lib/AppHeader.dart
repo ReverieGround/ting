@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'create/CreatePostPage.dart';
-import 'profile/ProfilePage.dart';
 import 'login/LoginPage.dart';
+import 'profile/ProfilePage.dart';
 
 /// 액션 버튼 타입 정의
 enum VibeHeaderNavType {

@@ -65,6 +65,7 @@ class FeedCard extends StatelessWidget {
               FeedHead(
                 profileImageUrl: feed.user.profileImage!,
                 userName: feed.user.userName,
+                userId: feed.user.userId,
                 userTitle: feed.user.title,
                 createdAt: formatTimestamp(feed.post.createdAt),
                 fontColor: fontColor,

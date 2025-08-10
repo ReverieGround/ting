@@ -1,5 +1,5 @@
 
-class MyInfo {
+class ProfileInfo {
   final String userName;
   final String location;
   final int recipeCount;
@@ -11,7 +11,7 @@ class MyInfo {
   final String? statusMessage;
   final String userTitle;
 
-  MyInfo({
+  ProfileInfo({
     required this.userName,
     required this.location,
     required this.statusMessage,
@@ -24,8 +24,8 @@ class MyInfo {
     required this.userTitle,
   });
 
-  factory MyInfo.empty() {
-    return MyInfo(
+  factory ProfileInfo.empty() {
+    return ProfileInfo(
       userName: '',
       userTitle: '',
       profileImage: '',
@@ -33,15 +33,15 @@ class MyInfo {
       postCount: 0,
       recipeCount: 0,
       followerCount: 0,
+      followingCount: 0,
       location: '',
       receivedLikeCount: 0,
-      followingCount: 0,
     );
   }
 
-  // JSON 데이터 (Map<String, dynamic>)로부터 MyInfo 객체를 생성하는 팩토리 생성자
-  factory MyInfo.fromJson(Map<String, dynamic> json) {
-    return MyInfo(
+  // JSON 데이터 (Map<String, dynamic>)로부터 ProfileInfo 객체를 생성하는 팩토리 생성자
+  factory ProfileInfo.fromJson(Map<String, dynamic> json) {
+    return ProfileInfo(
       userName: json['user_name'] ?? '',
       location: json['location'] ?? '서울시',
       statusMessage: json['status_message'] ?? '',
@@ -55,8 +55,8 @@ class MyInfo {
     );
   }
 
-  // 기존 MyInfo 객체에서 특정 필드만 변경하여 새로운 MyInfo 객체를 반환하는 copyWith 메서드
-  MyInfo copyWith({
+  // 기존 ProfileInfo 객체에서 특정 필드만 변경하여 새로운 ProfileInfo 객체를 반환하는 copyWith 메서드
+  ProfileInfo copyWith({
     String? userName,
     String? location,
     String? statusMessage,
@@ -68,7 +68,7 @@ class MyInfo {
     String? profileImage,
     String? userTitle,
   }) {
-    return MyInfo(
+    return ProfileInfo(
       userName: userName ?? this.userName,
       location: location ?? this.location,
       statusMessage: statusMessage ?? this.statusMessage,
@@ -82,7 +82,7 @@ class MyInfo {
     );
   }
 
-  // 선택 사항: MyInfo 객체를 JSON (Map<String, dynamic>)으로 변환하는 메서드
+  // 선택 사항: ProfileInfo 객체를 JSON (Map<String, dynamic>)으로 변환하는 메서드
   Map<String, dynamic> toJson() {
     return {
       'user_name': userName,

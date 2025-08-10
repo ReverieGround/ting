@@ -56,7 +56,7 @@ class _PostPageState extends State<PostPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     AbsorbPointer(
-                      absorbing: true,
+                      absorbing: false,
                       child: FeedCard(
                         feed: widget.feed,
                         fontColor: widget.fontColor,
