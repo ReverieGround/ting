@@ -1,11 +1,8 @@
 // lib/pages/profile/profile_page.dart
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'dart:io';
 
 // Firebase
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 // Common widgets
 import '../AppHeader.dart';
@@ -17,8 +14,8 @@ import '../models/FeedData.dart';
 import 'widgets/UserStatsRow.dart';
 import 'widgets/PinnedFeedsGrid.dart';
 import 'widgets/StatusMessage.dart';
-import 'tabs/YumTab.dart';
 import 'widgets/FollowButton.dart';
+import 'tabs/YumTab.dart';
 import 'tabs/GuestBookTab.dart';
 
 // Services

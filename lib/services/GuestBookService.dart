@@ -26,7 +26,6 @@ class GuestBookService {
       'text': note.text,
       'color': note.color.value,
       'pinned': note.pinned,
-      'rotationDeg': note.rotationDeg, // 여기는 그대로 note에서 받아서 저장
       'createdAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
   }
@@ -35,7 +34,6 @@ class GuestBookService {
     await _col(targetUserId).doc(note.id).update({
       'text': note.text,
       'color': note.color.value,
-      'rotationDeg': note.rotationDeg,
       'pinned': note.pinned,
     });
   }
@@ -55,7 +53,6 @@ class GuestBookService {
       text: (m['text'] ?? '') as String,
       color: Color(m['color'] as int),
       pinned: (m['pinned'] ?? false) as bool,
-      rotationDeg: (m['rotationDeg'] ?? 0).toDouble(), // 저장된 값 그대로 사용
     );
   }
 

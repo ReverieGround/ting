@@ -9,7 +9,7 @@ import 'ConfirmPage.dart';
 import 'helpers/ImagePickerFlow.dart';
 import 'helpers/ExifHelper.dart';
 
-import 'DateTimePickerDialog.dart';
+import 'widgets/DateTimePickerDialog.dart';
 import 'widgets/HeaderDateTitle.dart';
 import 'widgets/ImageCarousel.dart';
 import 'widgets/ChipsCategory.dart';
