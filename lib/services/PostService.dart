@@ -8,6 +8,11 @@ class PostService {
   final _fs = FirebaseFirestore.instance;
   final _auth = FirebaseAuth.instance;
 
+
+  String? getCurrentUserId(){
+    return _auth.currentUser?.uid;
+  }
+
   Future<List<PostData>> fetchUserPosts({
     required String userId,
     int limit = 50,
@@ -55,6 +60,31 @@ class PostService {
     return doc.exists;
   }
 
+  Future<void> pinPost(String postId) async {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null) return;
+    final ref = _fs.collection('users').doc(uid).collection('pinned_posts').doc(postId);
+    await ref.set({'created_at': FieldValue.serverTimestamp()}, SetOptions(merge: true));
+  }
+
+  Future<void> unpinPost(String postId) async {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null) return;
+    final ref = _fs.collection('users').doc(uid).collection('pinned_posts').doc(postId);
+    await ref.delete();
+  }
+
+  Future<void> togglePin({
+    required String postId,
+    required bool isCurrentlyPinned,
+  }) async {
+    // created_at로 통일
+    if (isCurrentlyPinned) {
+      await unpinPost(postId);
+    } else {
+      await pinPost(postId);
+    }
+  }
   Future<List<PostData>> fetchPinnedPosts({
     String? ownerUserId,
     int limit = 20,
@@ -65,7 +95,7 @@ class PostService {
     final pinnedSnap = await _fs
         .collection('users')
         .doc(uid)
-        .collection('pinnedPosts')
+        .collection('pinned_posts')
         .orderBy('created_at', descending: true)
         .limit(limit)
         .get();
@@ -108,32 +138,14 @@ class PostService {
     return out;
   }
 
-  Future<void> togglePin({
-    required String postId,
-    required bool isCurrentlyPinned,
-  }) async {
-    final uid = _auth.currentUser?.uid;
-    if (uid == null) return;
-
-    final ref = _fs.collection('users').doc(uid).collection('pinnedPosts').doc(postId);
-    try {
-      if (isCurrentlyPinned) {
-        await ref.delete();
-      } else {
-        await ref.set({'createdAt': FieldValue.serverTimestamp()});
-      }
-    } catch (e) {
-      debugPrint('togglePin error: $e');
-    }
-  }
-
   Future<void> toggleLike({
     required String postId,
+    required String userId,
     required bool isCurrentlyLiked,
   }) async {
     final uid = _auth.currentUser?.uid;
     if (uid == null) return;
-
+    if (uid == userId) return; 
     final likeRef = _fs.collection('posts').doc(postId).collection('likes').doc(uid);
     final postRef = _fs.collection('posts').doc(postId);
 
@@ -143,7 +155,7 @@ class PostService {
           tx.delete(likeRef);
           tx.update(postRef, {'likes_count': FieldValue.increment(-1)});
         } else {
-          tx.set(likeRef, {'createdAt': FieldValue.serverTimestamp()});
+          tx.set(likeRef, {'created_at': FieldValue.serverTimestamp()});
           tx.update(postRef, {'likes_count': FieldValue.increment(1)});
         }
       });
@@ -256,7 +268,7 @@ class PostService {
     return _fs
         .collection('users')
         .doc(uid)
-        .collection('pinnedPosts')
+        .collection('pinned_posts')
         .doc(postId)
         .snapshots()
         .map((doc) => doc.exists);
@@ -278,4 +290,42 @@ class PostService {
     });
   }
 
+  Future<String?> createPost({
+    required String title,
+    required String content,
+    required List<String> imageUrls,
+    required String visibility, // 'PUBLIC' | 'FOLLOWER' | 'PRIVATE'
+    String? recipeId,
+    required String category,
+    required String value,
+    String? region,
+    DateTime? capturedAt,
+  }) async {
+    try {
+      final doc = _fs.collection('posts').doc();
+      final uid = _auth.currentUser?.uid;
+      await doc.set({
+        'post_id': doc.id,
+        'user_id': uid,
+        'title': title,
+        'content': content.trim(),
+        'image_urls': imageUrls,
+        'visibility': visibility,
+        'recipe_id': recipeId,
+        'category': category,
+        'value': value,
+        'region': region ?? '',
+        'likes_count': 0,
+        'comments_count': 0,
+        'archived': false,
+        'created_at': FieldValue.serverTimestamp(),
+        'updated_at': FieldValue.serverTimestamp(),
+        'captured_at': capturedAt != null ? Timestamp.fromDate(capturedAt) : FieldValue.serverTimestamp(),
+      }, SetOptions(merge: false));
+      return doc.id;
+    } catch (e) {
+      debugPrint('createPost error: $e');
+      return null;
+    }
+  }
 }

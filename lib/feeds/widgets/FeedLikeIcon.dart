@@ -17,6 +17,7 @@ String formatNumber(int count) {
 
 class FeedLikeIcon extends StatefulWidget {
   final String postId;
+  final String userId;
   final int initialLikeCount;
   final bool hasLiked;
   final Function(int newLikeCount, bool newIsLiked)? onToggleCompleted;
@@ -27,6 +28,7 @@ class FeedLikeIcon extends StatefulWidget {
   const FeedLikeIcon({
     super.key,
     required this.postId,
+    required this.userId,
     required this.initialLikeCount,
     required this.hasLiked,
     this.onToggleCompleted,
@@ -67,8 +69,9 @@ class _LikeWidgetState extends State<FeedLikeIcon> {
   }
 
   Future<void> _toggleLike() async {
+    if (widget.userId == _postService.getCurrentUserId()) return;
     if (_isToggling) return;
-
+    
     setState(() {
       _isToggling = true;
     });
@@ -83,9 +86,9 @@ class _LikeWidgetState extends State<FeedLikeIcon> {
     });
 
     try {
-      
       await _postService.toggleLike(
         postId: widget.postId,
+        userId: widget.userId,
         isCurrentlyLiked: !optimisticNewHasLiked, // PostService는 현재 상태의 반대를 토글하므로
       );
 
@@ -122,7 +125,8 @@ class _LikeWidgetState extends State<FeedLikeIcon> {
     return GestureDetector(
       onTap: _isToggling ? null : _toggleLike,
       child: Row(
-        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Image.asset(
             _currentHasLiked ? pinkIconPath : blackIconPath,
@@ -133,9 +137,14 @@ class _LikeWidgetState extends State<FeedLikeIcon> {
           const SizedBox(width: 6),
           Text(
             formatNumber(_currentLikeCount),
+            textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: widget.fontSize,
               color: widget.fontColor,
+            ),
+            textHeightBehavior: const TextHeightBehavior(
+              applyHeightToFirstAscent: false,
+              applyHeightToLastDescent: false,
             ),
           ),
         ],

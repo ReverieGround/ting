@@ -20,7 +20,7 @@ class FeedContent extends StatelessWidget {
       children: [
         if (content != null && content!.isNotEmpty)
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             child: Text(
               content!,
               style: TextStyle(fontSize: 16, color: fontColor),
@@ -28,7 +28,7 @@ class FeedContent extends StatelessWidget {
           ),
         if (comments.isNotEmpty)
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             child: Text(
               '${comments[0]['user_name'] ?? '익명'}: ${comments[0]['content'] ?? ''}',
               style: TextStyle(fontSize: 14, color: fontColor),

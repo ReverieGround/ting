@@ -1,17 +1,17 @@
-// GuestBookPage.dart
+// GuestBookTab.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-import '../models/StickyNoteModel.dart';
-import 'widgets/StickyNoteCard.dart';
-import 'widgets/StickyNoteEditSheet.dart';
-import 'widgets/GuestNoteRepository.dart';
+import '../../models/StickyNoteModel.dart';
+import '../widgets/StickyNoteCard.dart';
+import '../widgets/StickyNoteEditSheet.dart';
+import '../widgets/GuestNoteRepository.dart';
 
-class GuestBookPage extends StatefulWidget {
+class GuestBookTab extends StatefulWidget {
   final String heroNamespace;
   final String currentUserId;
   final String targetUserId;
 
-  const GuestBookPage({
+  const GuestBookTab({
     super.key,
     this.heroNamespace = 'guestbook',
     required this.currentUserId,
@@ -19,10 +19,10 @@ class GuestBookPage extends StatefulWidget {
   });
 
   @override
-  State<GuestBookPage> createState() => _GuestBookPageState();
+  State<GuestBookTab> createState() => _GuestBookTabState();
 }
 
-class _GuestBookPageState extends State<GuestBookPage> {
+class _GuestBookTabState extends State<GuestBookTab> {
   final _repo = GuestBookRepository();
   final List<StickyNoteModel> _notes = [];
   bool _loading = true;

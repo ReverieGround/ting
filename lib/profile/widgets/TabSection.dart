@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'ContentGrid.dart';
-import 'YumTab.dart';
+import '../tabs/YumTab.dart';
 import '../../models/FeedData.dart';
 
 class TabSection extends StatefulWidget {

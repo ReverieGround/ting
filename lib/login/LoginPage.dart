@@ -3,6 +3,7 @@ import 'package:local_auth/local_auth.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/AuthService.dart';
 import '../home/HomePage.dart';
+import 'package:flutter/services.dart' show PlatformException;
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -15,233 +16,237 @@ class LoginPageState extends State<LoginPage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final LocalAuthentication _localAuth = LocalAuthentication();
+  final AuthService _authService = AuthService();  
   bool _rememberMe = false;
-  bool _showResendButton = false;
 
   @override
   void initState() {
     super.initState();
     _tryBiometricLogin();
   }
-
+  
   Future<void> _tryBiometricLogin() async {
-    final hasBiometrics = await _localAuth.canCheckBiometrics;
-    final isDeviceSupported = await _localAuth.isDeviceSupported();
-
-    if (!hasBiometrics || !isDeviceSupported) return;
-
-    final didAuthenticate = await _localAuth.authenticate(
-      localizedReason: '바이오 인증으로 자동 로그인',
-      options: const AuthenticationOptions(biometricOnly: true),
-    );
-
-    if (didAuthenticate) {
-      final success = await AuthService.verifyAuthToken();  // ✅ bio_token 없이 auth_token 하나로 통일
-      if (success) {
-        Navigator.pushReplacement(
-          context,
-          // MaterialPageRoute(builder: (context) => const FeedUnfoldPage()),
-          MaterialPageRoute(builder: (context) => const HomePage()),
-        );
-      }
-    }
-  }
-
-  Future<void> login() async {
     try {
-      UserCredential credential = await FirebaseAuth.instance
-          .signInWithEmailAndPassword(
-            email: emailController.text,
-            password: passwordController.text,
-          );
+      final hasBiometrics = await _localAuth.canCheckBiometrics;
+      final isSupported = await _localAuth.isDeviceSupported();
+      if (!hasBiometrics || !isSupported) return;
 
-      await credential.user?.reload();
-      final user = FirebaseAuth.instance.currentUser;
-
-      if (user != null && user.emailVerified) {
-        // ✅ rememberMe 체크된 경우 토큰 저장 (bio login용)
-        if (_rememberMe) {
-          await AuthService.storeAuthToken();
-        }
-
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const HomePage()),
-        );
-      } else {
-        await FirebaseAuth.instance.signOut();
-        if (mounted) {
-          setState(() {
-            _showResendButton = true;
-          });
-        }
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('이메일 인증이 완료되지 않았습니다.\n메일함에서 인증 링크를 확인해주세요.')),
-        );
-      }
-    } on FirebaseAuthException catch (e) {
-      debugPrint(e.message);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('로그인 실패: ${e.message ?? '알 수 없는 오류'}')),
+      final didAuthenticate = await _localAuth.authenticate(
+        localizedReason: '바이오 인증으로 자동 로그인',
+        options: const AuthenticationOptions(
+          biometricOnly: true,
+          stickyAuth: true, // 앱 전환 등 상황에서 인증 유지 도움
+        ),
       );
+      if (!didAuthenticate) return;
+
+      final success = await _authService.verifyStoredIdToken(); // ✅ 저장된 토큰 vs 현재 토큰
+      if (!success) return;
+
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const HomePage()),
+      );
+    } on PlatformException catch (e) {
+      debugPrint('biometric error: $e');
+    } catch (e) {
+      debugPrint('biometric login failed: $e');
     }
   }
-
 
   Future<void> resendVerificationEmail() async {
     try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null && !user.emailVerified) {
-        await user.sendEmailVerification();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("인증 메일을 다시 보냈습니다.")),
-        );
-      }
-    } catch (e) {
+      final ok = await _authService.sendEmailVerification();
+      if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("메일 전송에 실패했습니다.")),
+        SnackBar(content: Text(ok ? "인증 메일을 다시 보냈습니다." : "로그인이 필요합니다.")),
+      );
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("메일 전송 실패: ${e.message ?? '알 수 없는 오류'}")),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("메일 전송에 실패했습니다.")),
       );
     }
-  }
-
+  } 
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body:  SafeArea(
-      child:  Container(
-        width: double.infinity,
-        height: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Container(
-              width: double.infinity,
-              alignment: Alignment.topLeft,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children:[
-                  SizedBox(height: 20),
-                  Container(
-                    // color: Colors.amber,
-                    width: 180,
-                    alignment: Alignment.centerLeft,
-                    child: Image.asset(
-                      'assets/title_logo.png',
-                      width: double.infinity,
-                      fit: BoxFit.contain,
+      body: SafeArea(
+        child: Container(
+          width: double.infinity,
+          height: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                width: double.infinity,
+                alignment: Alignment.topLeft,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 20),
+                    Container(
+                      width: 180,
                       alignment: Alignment.centerLeft,
-              
+                      child: Image.asset(
+                        'assets/title_logo.png',
+                        width: double.infinity,
+                        fit: BoxFit.contain,
+                        alignment: Alignment.centerLeft,
+                      ),
                     ),
-                  ),  
-                  SizedBox(height: 30),
-                  Text("전 세계의 맛있는 순간을", 
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 24,
-                      fontWeight: FontWeight.w500,
-                  )),
-                  Text("함께 기록해요",
-                    style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 24,
-                    fontWeight: FontWeight.w500,
-                  )),
-                ]),
-            ),
-            // SNS 간편 로그인 버튼들
-            Container(
-              alignment: Alignment.bottomCenter,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  _snsLoginButton(
-                    'assets/login_icons/google_logo.png',
-                    'Google',
-                    () async {
-                      final cred = await AuthService.signInWithGoogle(context);
-                      if (cred != null) {
-                        await AuthService.registerUserInFirestore(
+                    const SizedBox(height: 30),
+                    const Text(
+                      "전 세계의 맛있는 순간을",
+                      style: TextStyle(color: Colors.black, fontSize: 24, fontWeight: FontWeight.w500),
+                    ),
+                    const Text(
+                      "함께 기록해요",
+                      style: TextStyle(color: Colors.black, fontSize: 24, fontWeight: FontWeight.w500),
+                    ),
+                  ],
+                ),
+              ),
+
+              // SNS 로그인 버튼들
+              Container(
+                alignment: Alignment.bottomCenter,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    _snsLoginButton(
+                      'assets/login_icons/google_logo.png',
+                      'Google',
+                      () async {
+                        final cred = await _authService.signInWithGoogle();
+                        if (cred != null) {
+                          await _authService.registerUser(
                             userName: cred.user?.displayName ?? '',
                             countryCode: 'KR',
                             countryName: 'Korea',
                             profileImageUrl: cred.user?.photoURL,
                           );
-              
-                          // ✅ 자동 이동 처리
-                          Navigator.pushReplacement(
-                            context,
+                          await _authService.saveIdToken();
+                          if (!mounted) return;
+                          Navigator.of(context).pushReplacement(
                             MaterialPageRoute(builder: (_) => const HomePage()),
                           );
-                      }
-                    },
-                    Colors.white,
-                    Color.fromRGBO(194, 194, 194, 1)
-                  ),
-                  _snsLoginButton(
-                    'assets/login_icons/facebook_logo.png',
-                    '페이스북',
-                    () async {
-                      final cred = await AuthService.signInWithFacebook();
-              
-                      if (cred != null) {
-                        await AuthService.registerUserInFirestore(
+                        } else {
+                          if (!mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Google 로그인 실패')),
+                          );
+                        }
+                      },
+                      Colors.white,
+                      const Color.fromRGBO(194, 194, 194, 1),
+                    ),
+
+                    _snsLoginButton(
+                      'assets/login_icons/facebook_logo.png',
+                      '페이스북',
+                      () async {
+                        final cred = await _authService.signInWithFacebook();
+                        if (cred != null) {
+                          await _authService.registerUser(
+                            userName: cred.user?.displayName ?? '',
+                            countryCode: 'KR',
+                            countryName: 'Korea',
+                            profileImageUrl: cred.user?.photoURL,
+                          );
+                          await _authService.saveIdToken();
+                          if (!mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Facebook 로그인 성공'), duration: Duration(milliseconds: 1000)),
+                          );
+                          await Future.delayed(const Duration(milliseconds: 800));
+                          if (!mounted) return;
+                          Navigator.of(context).pushReplacement(
+                            MaterialPageRoute(builder: (_) => const HomePage()),
+                          );
+                        } else {
+                          if (!mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Facebook 로그인 실패')),
+                          );
+                        }
+                      },
+                      Colors.white,
+                      const Color.fromRGBO(194, 194, 194, 1),
+                    ),
+
+                    _snsLoginButton(
+                      'assets/login_icons/naver_logo.png',
+                      '네이버',
+                      () async {
+                        final cred = await _authService.signInWithNaver();
+                        if (cred == null) {
+                          if (!mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('네이버 로그인 준비 중입니다')),
+                          );
+                          return;
+                        }
+                        await _authService.registerUser(
                           userName: cred.user?.displayName ?? '',
                           countryCode: 'KR',
                           countryName: 'Korea',
                           profileImageUrl: cred.user?.photoURL,
                         );
-              
-                        // ✅ 로그인 성공 안내
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Facebook 로그인 성공'),
-                            duration: Duration(milliseconds: 1000),
-                          ),
-                        );
-              
-                        // ✅ 자동 이동
-                        await Future.delayed(const Duration(milliseconds: 1000));
-                        Navigator.pushReplacement(
-                          context,
+                        await _authService.saveIdToken();
+                        if (!mounted) return;
+                        Navigator.of(context).pushReplacement(
                           MaterialPageRoute(builder: (_) => const HomePage()),
                         );
-                      } else {
-                        // ✅ 실패 안내
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Facebook 로그인 실패'),
-                          ),
+                      },
+                      const Color.fromARGB(255, 7, 199, 71),
+                      Colors.white,
+                    ),
+
+                    _snsLoginButton(
+                      'assets/login_icons/kakao_logo.png',
+                      '카카오',
+                      () async {
+                        final cred = await _authService.signInWithKakao();
+                        if (cred == null) {
+                          if (!mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('카카오 로그인 준비 중입니다')),
+                          );
+                          return;
+                        }
+                        await _authService.registerUser(
+                          userName: cred.user?.displayName ?? '',
+                          countryCode: 'KR',
+                          countryName: 'Korea',
+                          profileImageUrl: cred.user?.photoURL,
                         );
-                      }
-                    },
-                    Colors.white,
-                    Color.fromRGBO(194, 194, 194, 1)
-                  ),
-              
-                  _snsLoginButton(
-                    'assets/login_icons/naver_logo.png', 
-                    '네이버', 
-                    () {/* TODO: 네이버 로그인 */}, 
-                    const Color.fromARGB(255, 7, 199, 71),
-                    Colors.white,
-                  ),
-                  _snsLoginButton(
-                    'assets/login_icons/kakao_logo.png', 
-                    '카카오', 
-                    () {/* TODO: 카카오 로그인 */}, 
-                    Color.fromARGB(255, 255, 222, 8),
-                    Colors.white
-                  ),
-                ],
+                        await _authService.saveIdToken();
+                        if (!mounted) return;
+                        Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(builder: (_) => const HomePage()),
+                        );
+                      },
+                      const Color.fromARGB(255, 255, 222, 8),
+                      Colors.white,
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
       ),
     );
   }
@@ -277,7 +282,6 @@ class LoginPageState extends State<LoginPage> {
             ),
             const SizedBox(width: 8),
             Container(
-              // width: 200,
               child: Text(
                 label+"로 시작하기",
                 style: TextStyle(

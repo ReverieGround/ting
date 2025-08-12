@@ -1,10 +1,6 @@
-// widgets/FeedGrid.dart
-
 import 'package:flutter/material.dart';
 import '../../models/FeedData.dart';
 import '../../feeds/widgets/FeedCard.dart';
-
-// import 'FeedCard.dart';             
 
 class FeedGrid extends StatelessWidget {
   final List<FeedData> feeds; 
@@ -30,13 +26,15 @@ class FeedGrid extends StatelessWidget {
 
     const imageAspect = 3 / 4;                 // 가로:세로 비율
     final imageHeight = cellWidth / imageAspect; // 자동 계산된 높이
+    const iconSize = 22.0;
+    const iconGap = 4.0;
 
     return SliverGrid(
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: columns,
         crossAxisSpacing: spacing,
         mainAxisSpacing: spacing,
-        mainAxisExtent: imageHeight + 200, // 셀 높이 = 이미지 높이
+        mainAxisExtent: imageHeight + iconSize + iconGap * 2, // 셀 높이 = 이미지 높이
       ),
       delegate: SliverChildBuilderDelegate(
         (context, index) {
@@ -50,6 +48,8 @@ class FeedGrid extends StatelessWidget {
             imageHeight: imageHeight, // 카드에도 동일 적용
             fit: BoxFit.cover,
             borderRadius: 12,
+            iconSize: iconSize,
+            iconGap: iconGap,
           );
         },
         childCount: feeds.length,

@@ -1,5 +1,4 @@
 // widgets/MainHeader.dart
-
 import 'package:flutter/material.dart';
 import 'FilterBar.dart';
 import 'LocationSelector.dart';
@@ -21,10 +20,9 @@ class MainHeader extends StatefulWidget implements PreferredSizeWidget {
 
   @override
   Size get preferredSize {
-    // Column 위젯의 높이(header + filter bar)를 계산해서 반환합니다.
-    const double headerHeight = 40.0; // "이 시간 우리 동네" Row의 대략적인 높이
-    const double filterBarHeight = 40.0; // FilterBar의 대략적인 높이
-    const double padding = 20.0; // 상하 패딩과 여백
+    const double headerHeight = 40.0;
+    const double filterBarHeight = 40.0;
+    const double padding = 20.0;
     return const Size.fromHeight(headerHeight + filterBarHeight + padding);
   }
 }
@@ -32,35 +30,42 @@ class MainHeader extends StatefulWidget implements PreferredSizeWidget {
 class _MainHeaderState extends State<MainHeader> {
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 10.0, left: 8.0, right: 8.0),
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  '이 시간 우리 동네',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black,
-                  ),
-                ),
-                LocationSelector(region: widget.region),
-              ],
+    return Container(
+      color: Colors.white,
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(vertical: 10), // 좌우 패딩 제거
+      child: SafeArea(
+        left: false, right: false, top: true, bottom: false, // 좌우 인셋 제거
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // 좌우 패딩 없이 화면 끝에 맞춤
+                  Text(
+                    '이 시간 우리 동네',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black,
+                    ),
+                  ),SizedBox(width: 0), // 왼쪽 끝 붙임
+                  LocationSelector(region: widget.region),
+                ],
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 6),
-            child: FilterBar(
-              selectedIndex: widget.currentFilterIndex,
-              onFilterSelected: widget.onFilterSelected,
+            Padding(
+              padding: const EdgeInsets.only(left: 10.0, top: 12.0),
+              child: FilterBar(
+                selectedIndex: widget.currentFilterIndex,
+                onFilterSelected: widget.onFilterSelected,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

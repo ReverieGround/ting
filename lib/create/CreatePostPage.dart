@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../AppHeader.dart';
 import '../models/PostInputData.dart';
-import 'widgets/FinalCheck.dart';
+import 'ConfirmPage.dart';
 
 import 'helpers/ImagePickerFlow.dart';
 import 'helpers/ExifHelper.dart';
@@ -60,7 +60,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
       context: context,
       initial: selectedDate,
       onCancelToFinalCheck: () {
-        Navigator.push(context, MaterialPageRoute(builder: (_) => FinalCheck(postInputs: postInputs)));
+        Navigator.push(context, MaterialPageRoute(builder: (_) => ConfirmPage(postInputs: postInputs)));
       },
     );
     if (picked != null) {
@@ -172,7 +172,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
       bottomNavigationBar: BottomNextButton(
         isLoading: isUploading,
         onPressed: () {
-          Navigator.push(context, MaterialPageRoute(builder: (_) => FinalCheck(postInputs: postInputs)));
+          Navigator.push(context, MaterialPageRoute(builder: (_) => ConfirmPage(postInputs: postInputs)));
         },
       ),
     );

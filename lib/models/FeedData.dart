@@ -63,7 +63,7 @@ class FeedData {
           final pinDoc = await FirebaseFirestore.instance
               .collection('users')
               .doc(currentUserId)
-              .collection('pinnedPosts')
+              .collection('pinned_posts')
               .doc(post.postId)
               .get();
           fetchedIsPinned = pinDoc.exists;

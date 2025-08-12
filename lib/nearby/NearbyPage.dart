@@ -30,7 +30,12 @@ class _NearbyPageState extends State<NearbyPage> with SingleTickerProviderStateM
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    _tabController.addListener(_handleTabSelection);
+    _tabController.addListener(() {
+      if (!_tabController.indexIsChanging) {
+        setState(() {}); // MainHeader 갱신
+        _handleTabSelection(); // 기존 로직 실행
+      }
+    });
     _loadInitialData();
   }
 
@@ -38,6 +43,7 @@ class _NearbyPageState extends State<NearbyPage> with SingleTickerProviderStateM
   void dispose() {
     _tabController.removeListener(_handleTabSelection);
     _tabController.dispose();
+    
     super.dispose();
   }
 
@@ -133,16 +139,24 @@ class _NearbyPageState extends State<NearbyPage> with SingleTickerProviderStateM
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        toolbarHeight: 100, 
-        title: MainHeader(
-          region: region,
-          currentFilterIndex: _tabController.index,
-          onFilterSelected: (index) {            
-            _tabController.animateTo(index);
-          },
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(94),
+        child: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          toolbarHeight: 100,
+          automaticallyImplyLeading: false,
+          leadingWidth: 0,
+          titleSpacing: 0,
+          title: null,
+          flexibleSpace: SafeArea(
+            top: true, bottom: false, left: false, right: false,
+            child: MainHeader(
+              region: region,
+              currentFilterIndex: _tabController.index,
+              onFilterSelected: (index) => _tabController.animateTo(index),
+            ),
+          ),
         ),
       ),
       body: TabBarView(
@@ -180,4 +194,6 @@ class _NearbyPageState extends State<NearbyPage> with SingleTickerProviderStateM
       ),
     );
   }
+
+
 }

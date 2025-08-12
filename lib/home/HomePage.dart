@@ -33,9 +33,9 @@ class _HomePageState extends State<HomePage> {
 
     final mediaQuerySize = MediaQuery.of(context).size;
     final double bottomMargin = 10.0 + MediaQuery.of(context).padding.bottom;
-    final double horizontalPadding = 15;
+    final double horizontalPadding = 20;
     final double navigatorWidth = mediaQuerySize.width - 2 * horizontalPadding;
-    const double navigatorHeight = 60.0;
+    const double navigatorHeight = 50.0;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -59,7 +59,7 @@ class _HomePageState extends State<HomePage> {
                       decoration: BoxDecoration(
                         color: Color.fromRGBO(255, 255, 255, 0.4),
                         borderRadius: BorderRadius.circular(60),
-                        border: Border.all(color: Colors.black12),
+                        border: Border.all(color: Colors.black87, width: 1.0),
                       ),
                       padding: const EdgeInsets.symmetric(
                         horizontal: 50,

@@ -61,6 +61,7 @@ class _PostPageState extends State<PostPage> {
                         feed: widget.feed,
                         fontColor: widget.fontColor,
                         backgroundColor: widget.backgroundColor,
+                        iconAlignment: MainAxisAlignment.start,
                       ),
                     ),
                     const Divider(
