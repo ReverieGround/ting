@@ -1,13 +1,16 @@
+// feeds/widgets/FeedGrid.dart
 import 'package:flutter/material.dart';
 import '../../models/FeedData.dart';
 import '../../feeds/widgets/FeedCard.dart';
 
 class FeedGrid extends StatelessWidget {
-  final List<FeedData> feeds; 
+  final List<FeedData> feeds;
+  final ValueChanged<String>? onDeleted; // postId 전달
 
   const FeedGrid({
-    super.key, 
-    required this.feeds
+    super.key,
+    required this.feeds,
+    this.onDeleted,
   });
 
   @override
@@ -21,11 +24,11 @@ class FeedGrid extends StatelessWidget {
     final screenWidth = MediaQuery.of(context).size.width;
     const columns = 2;
     const spacing = 6.0;
-    const horizontalPadding = 0.0; // 바깥 여백이 있으면 값 수정
+    const horizontalPadding = 0.0;
     final cellWidth = (screenWidth - horizontalPadding * 2 - spacing * (columns - 1)) / columns;
 
-    const imageAspect = 3 / 4;                 // 가로:세로 비율
-    final imageHeight = cellWidth / imageAspect; // 자동 계산된 높이
+    const imageAspect = 3 / 4;
+    final imageHeight = cellWidth / imageAspect;
     const iconSize = 22.0;
     const iconGap = 4.0;
 
@@ -34,7 +37,7 @@ class FeedGrid extends StatelessWidget {
         crossAxisCount: columns,
         crossAxisSpacing: spacing,
         mainAxisSpacing: spacing,
-        mainAxisExtent: imageHeight + iconSize + iconGap * 2, // 셀 높이 = 이미지 높이
+        mainAxisExtent: imageHeight + iconSize + iconGap * 2,
       ),
       delegate: SliverChildBuilderDelegate(
         (context, index) {
@@ -45,17 +48,18 @@ class FeedGrid extends StatelessWidget {
             showContent: false,
             showTopWriter: false,
             showBottomWriter: true,
-            imageHeight: imageHeight, // 카드에도 동일 적용
+            imageHeight: imageHeight,
             fit: BoxFit.cover,
             borderRadius: 12,
             iconSize: iconSize,
             iconGap: iconGap,
+            onDeleted: () {
+              onDeleted?.call(feed.post.postId);
+            },
           );
         },
         childCount: feeds.length,
       ),
     );
-
-    
   }
 }

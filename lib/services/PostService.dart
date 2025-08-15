@@ -336,4 +336,23 @@ class PostService {
       return null;
     }
   }
+
+  Future<void> updateFields({
+    required String postId,
+    String? visibility,  // 'PUBLIC' | 'FOLLOWERS' | 'PRIVATE'
+    String? category,
+    String? value,       // 예: 'Wack' 등
+  }) async {
+    final data = <String, dynamic>{};
+    if (visibility != null) data['visibility'] = visibility;
+    if (category != null) data['category'] = category;
+    if (value != null) data['value'] = value;
+    if (data.isEmpty) return;
+    await _fs.collection('posts').doc(postId).update(data);
+  }
+
+  Future<void> softDelete(String postId) async {
+    await _fs.collection('posts').doc(postId).update({'archived': true});
+  }
+
 }
