@@ -348,7 +348,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
           top: false,
           child: BottomNextButton(
             isLoading: isUploading,
-            onPressed: () {
+            onPressed: () async {
               FocusScope.of(context).unfocus();
 
               if (postInputs.isEmpty) {
@@ -374,42 +374,71 @@ class _CreatePostPageState extends State<CreatePostPage> {
                   curve: Curves.easeOut,
                 );
 
-                final missingFields = <String>[];
-
-                if (currentInput!.imageFiles.isEmpty) missingFields.add("이미지");
-                if (currentInput.selectedCategory.isEmpty) missingFields.add("카테고리");
-                if (currentInput.selectedValue.isEmpty) missingFields.add("만족도");
-                if (currentInput.textController.text.trim().isEmpty) missingFields.add("리뷰내용");
-
-                String message;
-                if (missingFields.isEmpty) {
-                  message = "";
-                } else if (missingFields.length <= 2) {
-                  message = "${missingFields.join(', ')} 항목을 채워주세요.";
-                } else {
-                  final firstTwo = missingFields.take(2).join(', ');
-                  message = "$firstTwo 등 항목을 채워주세요.";
-                }
-
-                if (message.isNotEmpty) {
+                if (currentInput!.imageFiles.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(message),
-                      duration: const Duration(milliseconds: 500), // 표시 시간 2초로 변경
-                    ),
-                  );
+                      content: Text("이미지를 첨부해 주세요."),
+                      duration: const Duration(seconds: 1), // 표시 시간 2초로 변경
+                  ));
+                  return;
                 }
-                return;
-              }
+                
+                final missingFields = <String>[];
+                if (currentInput.selectedCategory.isEmpty) missingFields.add("음식 카테고리");
+                if (currentInput.selectedValue.isEmpty) missingFields.add("표현 키워드");
+                
+                if (missingFields.isNotEmpty) {
+                  final joined = missingFields.join('와 ');
+                  final joinedRev = attachObjectParticle(joined);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text("${joinedRev} 선택해주세요."),
+                      duration: const Duration(seconds: 1), // 표시 시간 2초로 변경
+                  ));
+                  return;
+                }
 
-              Navigator.push(
+                if (currentInput.textController.text.trim().isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text("게시글을 입력해주세요."),
+                      duration: const Duration(seconds: 1), // 표시 시간 2초로 변경
+                  ));
+                  return;
+                }
+              }
+              final uploadResult = await Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => ConfirmPage(postInputs: postInputs)),
               );
+              if (uploadResult == true){
+                 Navigator.pop(context); 
+              }
             },
           ),
         ),
       ),
     );
   }
+}
+
+String attachObjectParticle(String word) {
+  if (word.isEmpty) return word;
+  
+  // 마지막 글자의 유니코드 값
+  int code = word.codeUnitAt(word.length - 1);
+
+  // 한글 유니코드 시작 값(가)
+  const int hangulBase = 0xAC00;
+  const int hangulEnd = 0xD7A3;
+
+  // 한글이 아니면 그냥 '를'
+  if (code < hangulBase || code > hangulEnd) {
+    return "${word}를";
+  }
+
+  // 종성 여부: (코드 - 0xAC00) % 28 == 0이면 받침 없음
+  bool hasJong = ((code - hangulBase) % 28) != 0;
+
+  return "$word${hasJong ? '을' : '를'}";
 }
