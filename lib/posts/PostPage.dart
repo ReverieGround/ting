@@ -170,7 +170,8 @@ class _PostPageState extends State<PostPage> {
   Widget _buildCommentInputPanel(double height) {
     final kb = MediaQuery.of(context).viewInsets.bottom;   // 키보드 높이
     final safeBottom = MediaQuery.of(context).padding.bottom;
-
+    const double kCommentBarHeight = 48;
+    
     return SafeArea(
       top: false,
       child: Container(
@@ -199,7 +200,9 @@ class _PostPageState extends State<PostPage> {
                     style: const TextStyle(color: Colors.white),
                     textInputAction: TextInputAction.send,
                     onSubmitted: (_) => _handleSubmit(),
+                    textAlignVertical: TextAlignVertical.center, // ✅ 세로 중앙 정렬
                     decoration: InputDecoration(
+                      constraints: const BoxConstraints(minHeight: kCommentBarHeight),
                       filled: true,
                       fillColor: Colors.grey[900],
                       hintText: "댓글을 작성해 보세요",
