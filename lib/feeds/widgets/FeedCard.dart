@@ -1,5 +1,6 @@
-// feeds/widgets/FeedCard.dart
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'FeedHead.dart';
 import 'FeedImages.dart';
 import 'FeedContent.dart';
@@ -8,7 +9,7 @@ import 'FeedLikeIcon.dart';
 import 'FeedReplyIcon.dart';
 import '../../models/PostData.dart';
 import '../../models/FeedData.dart';
-import '../../profile/ProfilePage.dart';
+import '../../services/PostService.dart';
 
 class FeedCard extends StatelessWidget {
   final FeedData feed;
@@ -25,8 +26,8 @@ class FeedCard extends StatelessWidget {
   final double iconSize;
   final double iconGap;
   final MainAxisAlignment iconAlignment;
-  final bool isPinned;                 
-  final VoidCallback? onTogglePin;     
+  final bool isPinned;
+  final VoidCallback? onTogglePin;
   final bool blockNavPost;
 
   const FeedCard({
@@ -42,18 +43,21 @@ class FeedCard extends StatelessWidget {
     this.imageHeight = 350,
     this.fit = BoxFit.cover,
     this.borderRadius = 0.0,
-    this.isPinned = false, 
-    this.onTogglePin,     
+    this.isPinned = false,
+    this.onTogglePin,
     this.iconSize = 22.0,
     this.iconGap = 4.0,
     this.iconAlignment = MainAxisAlignment.start,
     this.blockNavPost = false,
   }) : super(key: key);
 
+  final _postService = PostService();
+
   @override
   Widget build(BuildContext context) {
-    final List<dynamic> comments = feed.post.comments ?? [];
-    final List<dynamic> imageUrls = (feed.post.imageUrls as List<dynamic>);
+    final comments = feed.post.comments ?? [];
+    final imageUrls = (feed.post.imageUrls as List<dynamic>);
+    final myUid = FirebaseAuth.instance.currentUser?.uid;
 
     return Container(
       decoration: BoxDecoration(color: backgroundColor),
@@ -61,32 +65,21 @@ class FeedCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (showTopWriter)
-            GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => ProfilePage(userId: feed.user.userId),
-                  ),
-                );
-              },
-              child: FeedHead(
-                profileImageUrl: feed.user.profileImage!,
-                userName: feed.user.userName,
-                userId: feed.user.userId,
-                userTitle: feed.user.title,
-                createdAt: formatTimestamp(feed.post.createdAt),
-                fontColor: fontColor,
-              ),
+            FeedHead(
+              profileImageUrl: feed.user.profileImage!,
+              userName: feed.user.userName,
+              userId: feed.user.userId,
+              userTitle: feed.user.title,
+              createdAt: formatTimestamp(feed.post.createdAt),
+              fontColor: fontColor,
+              isMine: feed.user.userId == myUid,
+              onEdit: () => _openEditSheet(context),
             ),
           if (imageUrls.isNotEmpty)
             GestureDetector(
               onTap: () {
-                if (!blockNavPost){
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => PostPage(feed: feed)),
-                  );
+                if (!blockNavPost) {
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => PostPage(feed: feed)));
                 }
               },
               child: _buildAutoImageArea(context, imageUrls),
@@ -133,10 +126,165 @@ class FeedCard extends StatelessWidget {
     );
   }
 
+  Future<void> _openEditSheet(BuildContext context) async {
+    final visibilityInit = feed.post.visibility ?? 'PUBLIC';
+    final categoryInit = feed.post.category;
+    final valueInit = feed.post.value;
+
+    String vis = visibilityInit;
+    String? cat = categoryInit;
+    String? val = valueInit;
+
+    final List<String> categories = ['요리', '밀키트', '식당', '배달'];
+    final List<Map<String, String>> reviewValues = [
+      {'label': 'Fire', 'image': 'assets/fire.png'},
+      {'label': 'Tasty', 'image': 'assets/tasty.png'},
+      {'label': 'Soso', 'image': 'assets/soso.png'},
+      {'label': 'Woops', 'image': 'assets/woops.png'},
+      {'label': 'Wack', 'image': 'assets/wack.png'},
+    ];
+
+    final result = await showModalBottomSheet<dynamic>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) {
+        return SafeArea(
+          top: false,
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(16, 12, 16, 16 + MediaQuery.of(context).viewInsets.bottom),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.black26, borderRadius: BorderRadius.circular(2))),
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('게시물 편집', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                    TextButton.icon(
+                      onPressed: () => Navigator.pop(context, 'delete'),
+                      icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                      label: const Text('삭제', style: TextStyle(color: Colors.redAccent)),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  value: vis,
+                  items: const [
+                    DropdownMenuItem(value: 'PUBLIC', child: Text('전체 공개')),
+                    DropdownMenuItem(value: 'FOLLOWERS', child: Text('팔로워만')),
+                    DropdownMenuItem(value: 'PRIVATE', child: Text('비공개')),
+                  ],
+                  onChanged: (v) => vis = v ?? vis,
+                  decoration: const InputDecoration(labelText: '공개 범위', border: OutlineInputBorder()),
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  value: cat,
+                  items: categories.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+                  onChanged: (v) => cat = v,
+                  decoration: const InputDecoration(labelText: '카테고리', border: OutlineInputBorder()),
+                ),
+                const SizedBox(height: 12),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: reviewValues.map((v) {
+                      final selected = val == v['label'];
+                      return ChoiceChip(
+                        label: Text(v['label']!),
+                        selected: selected,
+                        onSelected: (_) => val = v['label'],
+                      );
+                    }).toList(),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  height: 44,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(context, {
+                      'visibility': vis,
+                      'category': cat,
+                      'value': val,
+                    }),
+                    child: const Text('저장'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    if (result == null) return;
+
+    try {
+      if (result == 'delete') {
+        final ok = await showDialog<bool>(
+          context: context,
+          builder: (_) => AlertDialog(
+            title: const Text('삭제할까요?'),
+            content: const Text('이 게시물을 삭제합니다.'),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('취소')),
+              TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('삭제')),
+            ],
+          ),
+        );
+        if (ok == true) {
+          _postService.softDelete(feed.post.postId);
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('삭제되었습니다.')));
+          }
+        }
+        return;
+      }
+
+      final map = result as Map<String, dynamic>;
+      _postService.updateFields(
+        postId: feed.post.postId,
+        visibility: map['visibility'],
+        category: map['category'],
+        value: map['value'],
+      );
+      setState() {
+        if (map['visibility'] != null ){
+          feed.post.visibility = map['visibility'];
+        }
+        if (map['category'] != null ){
+          feed.post.category = map['category'];
+        }
+        if (map['value'] != null ){
+          feed.post.value = map['value'];
+        }
+      }
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('수정되었습니다.')));
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('실패: $e')));
+      }
+    }
+  }
+
+  String _visLabel(String v) {
+    switch (v) {
+      case 'PUBLIC': return '전체 공개';
+      case 'FOLLOWERS': return '팔로워만';
+      case 'PRIVATE': return '비공개';
+      default: return v;
+    }
+  }
+
   Widget _buildAutoImageArea(BuildContext context, List<dynamic> imageUrls) {
-    // 고정 높이 모드
     if (imageHeight != null) {
-      // 단일 이미지면 직접 다운스케일 디코딩
       if (imageUrls.length == 1) {
         final String url = imageUrls.first as String? ?? '';
         return ClipRRect(
@@ -169,8 +317,6 @@ class FeedCard extends StatelessWidget {
           ),
         );
       }
-
-      // 2장 이상은 기존 FeedImages 유지
       return ClipRRect(
         borderRadius: BorderRadius.circular(borderRadius),
         clipBehavior: Clip.antiAlias,
@@ -198,7 +344,6 @@ class FeedCard extends StatelessWidget {
       );
     }
 
-    // 자동 비율 모드
     final aspect = _autoAspectByCount(imageUrls.length);
     return LayoutBuilder(
       builder: (context, c) {
@@ -206,7 +351,6 @@ class FeedCard extends StatelessWidget {
         final h = w / aspect;
         final dpr = MediaQuery.of(context).devicePixelRatio;
 
-        // 단일 이미지면 직접 다운스케일 디코딩
         if (imageUrls.length == 1) {
           final String url = imageUrls.first as String? ?? '';
           final wPx = (w * dpr).round();
@@ -235,7 +379,6 @@ class FeedCard extends StatelessWidget {
           );
         }
 
-        // 2장 이상은 기존 FeedImages 유지
         return ClipRRect(
           borderRadius: BorderRadius.circular(borderRadius),
           clipBehavior: Clip.antiAlias,
@@ -265,7 +408,6 @@ class FeedCard extends StatelessWidget {
     );
   }
 
-  // 우상단 핀 버튼
   Widget _buildPinButton() {
     if (onTogglePin == null && !isPinned) return const SizedBox.shrink();
     return Positioned(
@@ -286,7 +428,6 @@ class FeedCard extends StatelessWidget {
     );
   }
 
-  // 하단 작성자 영역(아바타 다운스케일)
   Widget _buildBottomWriterOverlay(BuildContext context) {
     final dpr = MediaQuery.of(context).devicePixelRatio;
     final avatarPx = (24 * dpr).round();
