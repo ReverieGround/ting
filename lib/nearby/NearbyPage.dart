@@ -1,10 +1,8 @@
 // NearbyPage.dart
-
 import 'package:flutter/material.dart';
-
 import 'widgets/MainHeader.dart';
-import 'widgets/FeedGrid.dart';  
-import '../models/FeedData.dart'; 
+import 'widgets/FeedGrid.dart';
+import '../models/FeedData.dart';
 import '../../services/FeedService.dart';
 import '../../services/UserService.dart';
 
@@ -15,16 +13,20 @@ class NearbyPage extends StatefulWidget {
   State<NearbyPage> createState() => _NearbyPageState();
 }
 
-class _NearbyPageState extends State<NearbyPage> with SingleTickerProviderStateMixin {
+class _NearbyPageState extends State<NearbyPage>
+    with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   List<FeedData> realtimeFeeds = [];
   List<FeedData> hotFeeds = [];
   List<FeedData> wackFeeds = [];
   bool isLoading = true;
   String region = '서울시';
-  
+
   final FeedService _feedService = FeedService();
   final UserService _userService = UserService();
   late TabController _tabController;
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -32,8 +34,8 @@ class _NearbyPageState extends State<NearbyPage> with SingleTickerProviderStateM
     _tabController = TabController(length: 3, vsync: this);
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) {
-        setState(() {}); // MainHeader 갱신
-        _handleTabSelection(); // 기존 로직 실행
+        setState(() {}); // 헤더 갱신
+        _handleTabSelection();
       }
     });
     _loadInitialData();
@@ -41,9 +43,7 @@ class _NearbyPageState extends State<NearbyPage> with SingleTickerProviderStateM
 
   @override
   void dispose() {
-    _tabController.removeListener(_handleTabSelection);
     _tabController.dispose();
-    
     super.dispose();
   }
 
@@ -53,56 +53,44 @@ class _NearbyPageState extends State<NearbyPage> with SingleTickerProviderStateM
     await _loadFeeds(tabIndex: 0);
     if (mounted) setState(() => isLoading = false);
   }
-  
+
   Future<void> _handleTabSelection() async {
     if (!_tabController.indexIsChanging) {
       await _loadFeeds(tabIndex: _tabController.index);
     }
   }
-  
+
   Future<void> _loadFeeds({required int tabIndex}) async {
     if (tabIndex == 0 && realtimeFeeds.isNotEmpty) return;
     if (tabIndex == 1 && hotFeeds.isNotEmpty) return;
     if (tabIndex == 2 && wackFeeds.isNotEmpty) return;
 
-    if(mounted) setState(() => isLoading = true);
-    
+    if (mounted) setState(() => isLoading = true);
+
     try {
       if (tabIndex == 0) {
         final fetchedFeeds = await _feedService.fetchRealtimeFeeds(
           region: region,
-          limit: 20, // ✅ limit 값 전달
+          limit: 20,
         );
-        if(mounted) {
-          setState(() {
-            realtimeFeeds = fetchedFeeds;
-          });
-        }
+        if (mounted) setState(() => realtimeFeeds = fetchedFeeds);
       } else if (tabIndex == 1) {
         final fetchedFeeds = await _feedService.fetchHotFeeds(
           region: region,
           date: DateTime.now(),
           limit: 20,
         );
-        if(mounted) {
-          setState(() {
-            hotFeeds = fetchedFeeds;
-          });
-        }
+        if (mounted) setState(() => hotFeeds = fetchedFeeds);
       } else if (tabIndex == 2) {
         final fetchedFeeds = await _feedService.fetchWackFeeds(
           region: region,
           limit: 20,
         );
-        if(mounted) {
-          setState(() {
-            wackFeeds = fetchedFeeds;
-          });
-        }
+        if (mounted) setState(() => wackFeeds = fetchedFeeds);
       }
     } catch (e) {
       debugPrint('피드 로딩 실패: $e');
-      if(mounted) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('피드 로딩 중 오류가 발생했습니다: $e')),
         );
@@ -115,21 +103,13 @@ class _NearbyPageState extends State<NearbyPage> with SingleTickerProviderStateM
   Future<void> fetchRegion() async {
     try {
       final fetchedRegion = await _userService.fetchUserRegion();
-      
-      // ✅ 디버깅을 위해 콘솔에 출력
-      if (fetchedRegion != null) {
-        if (mounted) {
-          setState(() {
-            region = fetchedRegion;
-          });
-        }
-      } else {
+      if (fetchedRegion != null && mounted) {
+        setState(() => region = fetchedRegion);
       }
     } catch (e) {
-      // ✅ 오류 발생 시 콘솔에 출력
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('지역 정보를 불러오는 데 실패했습니다.')),
+          const SnackBar(content: Text('지역 정보를 불러오는 데 실패했습니다.')),
         );
       }
     }
@@ -137,6 +117,7 @@ class _NearbyPageState extends State<NearbyPage> with SingleTickerProviderStateM
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // keep-alive
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: PreferredSize(
@@ -150,7 +131,10 @@ class _NearbyPageState extends State<NearbyPage> with SingleTickerProviderStateM
           titleSpacing: 0,
           title: null,
           flexibleSpace: SafeArea(
-            top: true, bottom: false, left: false, right: false,
+            top: true,
+            bottom: false,
+            left: false,
+            right: false,
             child: MainHeader(
               region: region,
               currentFilterIndex: _tabController.index,
@@ -168,7 +152,7 @@ class _NearbyPageState extends State<NearbyPage> with SingleTickerProviderStateM
           isLoading && _tabController.index == 1
               ? const Center(child: CircularProgressIndicator())
               : _buildFeedGrid(hotFeeds),
-          isLoading && _tabController.index == 1
+          isLoading && _tabController.index == 2
               ? const Center(child: CircularProgressIndicator())
               : _buildFeedGrid(wackFeeds),
         ],
@@ -177,23 +161,24 @@ class _NearbyPageState extends State<NearbyPage> with SingleTickerProviderStateM
   }
 
   Widget _buildFeedGrid(List<FeedData> feeds) {
-    if (feeds.isEmpty) {
-      return const Center(child: Text("게시물이 없습니다."));
-    }
     return RefreshIndicator(
       onRefresh: () => _loadFeeds(tabIndex: _tabController.index),
       child: CustomScrollView(
+        primary: true,
+        physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 4.0),
-            sliver: FeedGrid(
-              feeds: feeds
+          if (feeds.isEmpty)
+            const SliverFillRemaining(
+              hasScrollBody: false,
+              child: Center(child: Text("게시물이 없습니다.")),
+            )
+          else
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 4.0),
+              sliver: FeedGrid(feeds: feeds),
             ),
-          ),
         ],
       ),
     );
   }
-
-
 }

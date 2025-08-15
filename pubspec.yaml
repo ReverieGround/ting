@@ -132,10 +132,10 @@ flutter:
     - assets/logo.png
     - assets/navi_home_black.png
     - assets/navi_home_pink.png
-    - assets/navi_me_black.png
-    - assets/navi_me_pink.png
-    - assets/navi_place_black.png
-    - assets/navi_place_pink.png
+    - assets/navi_profile_black.png
+    - assets/navi_profile_pink.png
+    - assets/navi_nearby_black.png
+    - assets/navi_nearby_pink.png
     - assets/navi.png
     - assets/thunder.png
     - assets/fire.png
