@@ -195,7 +195,7 @@ class AuthService {
   }
 
   Future<bool> hasStoredIdToken() async {
-    final token = await _storage.read(key: 'id_token');
+    final token = await _storage.read(key: 'auth_token');
     return token != null && token.isNotEmpty;
   }
 
