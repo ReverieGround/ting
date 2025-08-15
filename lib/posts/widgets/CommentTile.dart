@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart'; // ✅ 현재 로그인 유저 확인용
 import '../../common/widgets/TimeAgoText.dart';
 import '../../services/PostService.dart'; // ✅ 댓글 삭제 서비스
+import '../../profile/ProfilePage.dart';
 
 class CommentTile extends StatelessWidget {
   final String commentId; // ✅ 댓글 문서 ID
@@ -51,18 +52,28 @@ class CommentTile extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween, 
                 children: [
-                  Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 12,
-                        backgroundImage: (userProfile != null && userProfile.isNotEmpty)
-                            ? NetworkImage(userProfile)
-                            : null,
-                        backgroundColor: Colors.grey[700],
-                      ),
-                      const SizedBox(width: 6),
-                      Text(userName, style: TextStyle(color: nameColor, fontSize: 14, fontWeight: FontWeight.bold)),
-                    ],
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ProfilePage(userId: userId), // userId 전달
+                        ),
+                      );
+                    },
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 12,
+                          backgroundImage: (userProfile != null && userProfile.isNotEmpty)
+                              ? NetworkImage(userProfile)
+                              : null,
+                          backgroundColor: Colors.grey[700],
+                        ),
+                        const SizedBox(width: 6),
+                        Text(userName, style: TextStyle(color: nameColor, fontSize: 14, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
