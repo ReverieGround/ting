@@ -24,7 +24,8 @@ class FeedCard extends StatefulWidget {
   final BoxFit fit;
   final double borderRadius;
   final double iconSize;
-  final double iconGap;
+  final double iconHGap;
+  final double iconVGap;
   final MainAxisAlignment iconAlignment;
   final bool isPinned;
   final VoidCallback? onTogglePin;
@@ -47,7 +48,8 @@ class FeedCard extends StatefulWidget {
     this.isPinned = false,
     this.onTogglePin,
     this.iconSize = 22.0,
-    this.iconGap = 4.0,
+    this.iconHGap = 4.0,
+    this.iconVGap = 4.0,
     this.iconAlignment = MainAxisAlignment.start,
     this.blockNavPost = false,
     this.onDeleted,
@@ -77,7 +79,8 @@ class _FeedCardState extends State<FeedCard> {
   BoxFit get fit => widget.fit;
   double get borderRadius => widget.borderRadius;
   double get iconSize => widget.iconSize;
-  double get iconGap => widget.iconGap;
+  double get iconHGap => widget.iconHGap;
+  double get iconVGap => widget.iconVGap;
   MainAxisAlignment get iconAlignment => widget.iconAlignment;
   bool get isPinned => widget.isPinned;
   VoidCallback? get onTogglePin => widget.onTogglePin;
@@ -134,7 +137,7 @@ class _FeedCardState extends State<FeedCard> {
             ),
           if (showIcons)
             Padding(
-              padding: EdgeInsets.symmetric(vertical: iconGap, horizontal: iconGap),
+              padding: EdgeInsets.symmetric(vertical: iconVGap, horizontal: iconHGap),
               child: SizedBox(
                 height: iconSize,
                 child: Row(
@@ -338,38 +341,6 @@ class _FeedCardState extends State<FeedCard> {
     String? currValue,
   ) {
     if (imageHeight != null) {
-      if (imageUrls.length == 1) {
-        final String url = imageUrls.first as String? ?? '';
-        return ClipRRect(
-          borderRadius: BorderRadius.circular(borderRadius),
-          clipBehavior: Clip.antiAlias,
-          child: SizedBox(
-            height: imageHeight,
-            child: LayoutBuilder(
-              builder: (context, c) {
-                final dpr = MediaQuery.of(context).devicePixelRatio;
-                final wPx = (c.maxWidth * dpr).round();
-                final hPx = ((imageHeight ?? 0) * dpr).round();
-                return Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    Image.network(
-                      url,
-                      fit: fit,
-                      cacheWidth: wPx,
-                      cacheHeight: hPx,
-                      filterQuality: FilterQuality.low,
-                      errorBuilder: (_, __, ___) => const Icon(Icons.broken_image),
-                    ),
-                    if (isPinned) _buildPinButton(),
-                    if (showBottomWriter) _buildBottomWriterOverlay(context),
-                  ],
-                );
-              },
-            ),
-          ),
-        );
-      }
       return ClipRRect(
         borderRadius: BorderRadius.circular(borderRadius),
         clipBehavior: Clip.antiAlias,
@@ -402,36 +373,6 @@ class _FeedCardState extends State<FeedCard> {
       builder: (context, c) {
         final w = c.maxWidth;
         final h = w / aspect;
-        final dpr = MediaQuery.of(context).devicePixelRatio;
-
-        if (imageUrls.length == 1) {
-          final String url = imageUrls.first as String? ?? '';
-          final wPx = (w * dpr).round();
-          final hPx = (h * dpr).round();
-          return ClipRRect(
-            borderRadius: BorderRadius.circular(borderRadius),
-            clipBehavior: Clip.antiAlias,
-            child: SizedBox(
-              height: h,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Image.network(
-                    url,
-                    fit: fit,
-                    cacheWidth: wPx,
-                    cacheHeight: hPx,
-                    filterQuality: FilterQuality.low,
-                    errorBuilder: (_, __, ___) => const Icon(Icons.broken_image),
-                  ),
-                  if (isPinned) _buildPinButton(),
-                  if (showBottomWriter) _buildBottomWriterOverlay(context),
-                ],
-              ),
-            ),
-          );
-        }
-
         return ClipRRect(
           borderRadius: BorderRadius.circular(borderRadius),
           clipBehavior: Clip.antiAlias,

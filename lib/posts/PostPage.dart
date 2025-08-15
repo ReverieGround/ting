@@ -63,6 +63,8 @@ class _PostPageState extends State<PostPage> {
                         backgroundColor: widget.backgroundColor,
                         iconAlignment: MainAxisAlignment.start,
                         blockNavPost: true, 
+                        iconVGap: 10,
+                        iconHGap: 4,
                       ),
                     ),
                     const Divider(

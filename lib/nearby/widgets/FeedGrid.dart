@@ -52,7 +52,8 @@ class FeedGrid extends StatelessWidget {
             fit: BoxFit.cover,
             borderRadius: 12,
             iconSize: iconSize,
-            iconGap: iconGap,
+            iconVGap: iconGap,
+            iconHGap: iconGap,
             onDeleted: () {
               onDeleted?.call(feed.post.postId);
             },

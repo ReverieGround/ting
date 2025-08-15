@@ -140,7 +140,7 @@ class _FeedImageCarouselState extends State<FeedImages> {
 
               if (widget.showTags)
                 Positioned(
-                  top: 6,
+                  top: 10,
                   left: 6,
                   child: Row(
                     children: [
