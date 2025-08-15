@@ -57,7 +57,6 @@ class _CreatePostPageState extends State<CreatePostPage> {
   String capturedDate = DateFormat('yyyy. MM. dd HH:mm').format(DateTime.now());
   DateTime selectedDate = DateTime.now();
 
-
   final Map<int, _FieldErrors> _errors = {};
   _FieldErrors _errFor(int i) => _errors[i] ?? _FieldErrors();
 
@@ -293,13 +292,20 @@ class _CreatePostPageState extends State<CreatePostPage> {
                           Container(
                             decoration: BoxDecoration(
                               border: Border.all(
-                                color: err.text ? Colors.red : Colors.transparent,
+                                color: err.text  ? Colors.red : Colors.transparent,
                                 width: 1.5,
                               ),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: PostTextField(
                               controller: currentInput.textController,
+                              onChanged: (value) {
+                                if (value.trim().isNotEmpty && err.text) {
+                                  setState(() {
+                                    err.text = false;
+                                  });
+                                }
+                              },
                             ),
                           ),
                           const SizedBox(height: 10),
@@ -366,9 +372,32 @@ class _CreatePostPageState extends State<CreatePostPage> {
                   duration: const Duration(milliseconds: 250),
                   curve: Curves.easeOut,
                 );
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('필수 항목을 채워주세요.')),
-                );
+
+                final missingFields = <String>[];
+
+                if (currentInput!.imageFiles.isEmpty) missingFields.add("이미지");
+                if (currentInput.selectedCategory.isEmpty) missingFields.add("카테고리");
+                if (currentInput.selectedValue.isEmpty) missingFields.add("만족도");
+                if (currentInput.textController.text.trim().isEmpty) missingFields.add("리뷰내용");
+
+                String message;
+                if (missingFields.isEmpty) {
+                  message = "";
+                } else if (missingFields.length <= 2) {
+                  message = "${missingFields.join(', ')} 항목을 채워주세요.";
+                } else {
+                  final firstTwo = missingFields.take(2).join(', ');
+                  message = "$firstTwo 등 항목을 채워주세요.";
+                }
+
+                if (message.isNotEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(message),
+                      duration: const Duration(milliseconds: 500), // 표시 시간 2초로 변경
+                    ),
+                  );
+                }
                 return;
               }
 
