@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../models/FeedData.dart';
+import '../../posts/PostPage.dart';
 
 class YumTab extends StatefulWidget {
   final List<FeedData> feeds;
@@ -65,8 +66,14 @@ class _YumTabState extends State<YumTab> {
         final url = imgs.first as String;
 
         return GestureDetector(
-          key: ValueKey('yum_${feed.post.postId}'), // ← 추가
-          onLongPress: () => _openPreview(feed), // 롱프레스
+          key: ValueKey('yum_${feed.post.postId}'),
+          onLongPress: () => _openPreview(feed),
+          onTap: () => {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => PostPage(feed: feed)),
+            )
+          },
           child: _buildImage(url),
         );
       },
