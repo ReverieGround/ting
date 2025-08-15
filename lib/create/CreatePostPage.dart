@@ -91,7 +91,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
   @override
   Widget build(BuildContext context) {
     final currentInput = postInputs[_currentIndex];
-
+    final keyboard = MediaQuery.of(context).viewInsets.bottom;
     return Scaffold(
       appBar: AppHeader(
         backgroundColor: Colors.white,
@@ -121,29 +121,33 @@ class _CreatePostPageState extends State<CreatePostPage> {
               ),
             ),
             const SizedBox(height: 16),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 18),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CategoryChips(
-                    categories: categories,
-                    selected: currentInput.selectedCategory,
-                    onSelect: (v) => setState(() {
-                      currentInput.selectedCategory =
-                          currentInput.selectedCategory == v ? "" : v;
-                    }),
-                  ),
-                  const SizedBox(height: 8),
-                  ReviewChips(
-                    items: reviewValues,
-                    selected: currentInput.selectedValue,
-                    onSelect: (v) => setState(() => currentInput.selectedValue = v),
-                  ),
-                  const SizedBox(height: 16),
-                  PostTextField(controller: currentInput.textController),
-                  const SizedBox(height: 10),
-                ],
+            GestureDetector(
+              behavior: HitTestBehavior.translucent, // 빈 영역 탭도 감지
+              onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 18),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CategoryChips(
+                      categories: categories,
+                      selected: currentInput.selectedCategory,
+                      onSelect: (v) => setState(() {
+                        currentInput.selectedCategory =
+                            currentInput.selectedCategory == v ? "" : v;
+                      }),
+                    ),
+                    const SizedBox(height: 8),
+                    ReviewChips(
+                      items: reviewValues,
+                      selected: currentInput.selectedValue,
+                      onSelect: (v) => setState(() => currentInput.selectedValue = v),
+                    ),
+                    const SizedBox(height: 16),
+                    PostTextField(controller: currentInput.textController),
+                    const SizedBox(height: 10),
+                  ],
+                ),
               ),
             ),
             if (currentInput.selectedCategory.contains('요리'))
@@ -169,11 +173,22 @@ class _CreatePostPageState extends State<CreatePostPage> {
           ],
         ),
       ),
-      bottomNavigationBar: BottomNextButton(
-        isLoading: isUploading,
-        onPressed: () {
-          Navigator.push(context, MaterialPageRoute(builder: (_) => ConfirmPage(postInputs: postInputs)));
-        },
+      bottomNavigationBar: AnimatedPadding(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOut,
+        padding: EdgeInsets.only(bottom: keyboard), // 핵심!
+        child: SafeArea(
+          top: false,
+          child: BottomNextButton(
+            isLoading: isUploading,
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => ConfirmPage(postInputs: postInputs)),
+              );
+            },
+          ),
+        ),
       ),
     );
   }
