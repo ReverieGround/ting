@@ -281,7 +281,8 @@ class _CreatePostPageState extends State<CreatePostPage> {
                             items: reviewValues,
                             selected: currentInput.selectedValue,
                             onSelect: (v) => setState(() {
-                              currentInput.selectedValue = v;
+                              currentInput.selectedValue =
+                                currentInput.selectedValue == v ? "" : v;
                               _errors[_currentIndex]?.review = false;
                             }),
                             showBorder: err.review, // 에러일 때만 빨간 테두리
