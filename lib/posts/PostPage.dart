@@ -116,7 +116,7 @@ class _PostPageState extends State<PostPage> {
             // _buildAppNav(),
             Positioned(
               left: 0, right: 0, bottom: 0,
-              child: _buildCommentInputPanel(inputHeight),
+              child: _buildCommentInputPanel(),
             ),
           ],
         ),
@@ -170,21 +170,20 @@ class _PostPageState extends State<PostPage> {
     }
   }
 
-  Widget _buildCommentInputPanel(double height) {
-    final kb = MediaQuery.of(context).viewInsets.bottom;   // 키보드 높이
+  // 입력 바: kb 제거, safeBottom만 사용 + height 고정 X
+  Widget _buildCommentInputPanel() {
     final safeBottom = MediaQuery.of(context).padding.bottom;
     const double kCommentBarHeight = 48;
-    
+
     return SafeArea(
       top: false,
       child: Container(
-        height: height,
-        width: height,
+        width: double.infinity,
         color: const Color.fromARGB(255, 15, 15, 15),
         padding: EdgeInsets.only(
           left: 12,
           right: 12,
-          bottom: (kb > 0 ? kb : safeBottom) + 8, // ⬅️ 키보드/세이프 적용
+          bottom: safeBottom,
           top: 6,
         ),
         child: Row(
@@ -203,7 +202,7 @@ class _PostPageState extends State<PostPage> {
                     style: const TextStyle(color: Colors.white),
                     textInputAction: TextInputAction.send,
                     onSubmitted: (_) => _handleSubmit(),
-                    textAlignVertical: TextAlignVertical.center, // ✅ 세로 중앙 정렬
+                    textAlignVertical: TextAlignVertical.center,
                     decoration: InputDecoration(
                       constraints: const BoxConstraints(minHeight: kCommentBarHeight),
                       filled: true,
