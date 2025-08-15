@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'widgets/FeedCard.dart';
 import '../create/CreatePostPage.dart';
 import '../models/FeedData.dart';
-import '../services/FeedService.dart'; // ← 실제 파일명
+import '../services/FeedService.dart';
 
 class FeedPage extends StatefulWidget {
   const FeedPage({super.key});
@@ -105,8 +105,21 @@ class _FeedPageState extends State<FeedPage> with AutomaticKeepAliveClientMixin 
             padding: EdgeInsets.zero,
             cacheExtent: 800,
             itemCount: _feeds.length,
-            itemBuilder: (context, index) => FeedCard(feed: _feeds[index]),
-          );
+            itemBuilder: (context, index) {
+              final item = _feeds[index];
+              return FeedCard(
+              feed: item,
+              onDeleted: () {
+                setState(() {
+                  _feeds.removeWhere((f) => f.post.postId == item.post.postId);
+                });
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('삭제되었습니다.')),
+                );
+              },
+            );
+          }
+        );
 
     return Scaffold(
       backgroundColor: Colors.white,

@@ -68,11 +68,20 @@ class _YumTabState extends State<YumTab> {
         return GestureDetector(
           key: ValueKey('yum_${feed.post.postId}'),
           onLongPress: () => _openPreview(feed),
-          onTap: () => {
-            Navigator.push(
+          onTap: () async {
+            final deleted = await Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => PostPage(feed: feed)),
-            )
+            );
+            if (deleted == true) {
+              if (!mounted) return;
+              setState(() {
+                _visibleFeeds.removeWhere((f) => f.post.postId == feed.post.postId);
+              });
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('삭제되었습니다.')),
+              );
+            }
           },
           child: _buildImage(url),
         );

@@ -1,6 +1,6 @@
+// feeds/widgets/FeedCard.dart
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'FeedHead.dart';
 import 'FeedImages.dart';
 import 'FeedContent.dart';
@@ -11,7 +11,7 @@ import '../../models/PostData.dart';
 import '../../models/FeedData.dart';
 import '../../services/PostService.dart';
 
-class FeedCard extends StatelessWidget {
+class FeedCard extends StatefulWidget {
   final FeedData feed;
   final Color fontColor;
   final Color backgroundColor;
@@ -29,6 +29,7 @@ class FeedCard extends StatelessWidget {
   final bool isPinned;
   final VoidCallback? onTogglePin;
   final bool blockNavPost;
+  final VoidCallback? onDeleted;
 
   const FeedCard({
     Key? key,
@@ -49,15 +50,48 @@ class FeedCard extends StatelessWidget {
     this.iconGap = 4.0,
     this.iconAlignment = MainAxisAlignment.start,
     this.blockNavPost = false,
+    this.onDeleted,
   }) : super(key: key);
 
+  @override
+  State<FeedCard> createState() => _FeedCardState();
+}
+
+class _FeedCardState extends State<FeedCard> {
   final _postService = PostService();
+
+  // 서버 저장 후, 화면만 즉시 반영하기 위한 로컬 오버라이드
+  String? _visOverride;
+  String? _catOverride;
+  String? _valOverride;
+
+  FeedData get feed => widget.feed;
+  Color get fontColor => widget.fontColor;
+  Color get backgroundColor => widget.backgroundColor;
+  bool get showTopWriter => widget.showTopWriter;
+  bool get showBottomWriter => widget.showBottomWriter;
+  bool get showTags => widget.showTags;
+  bool get showIcons => widget.showIcons;
+  bool get showContent => widget.showContent;
+  double? get imageHeight => widget.imageHeight;
+  BoxFit get fit => widget.fit;
+  double get borderRadius => widget.borderRadius;
+  double get iconSize => widget.iconSize;
+  double get iconGap => widget.iconGap;
+  MainAxisAlignment get iconAlignment => widget.iconAlignment;
+  bool get isPinned => widget.isPinned;
+  VoidCallback? get onTogglePin => widget.onTogglePin;
+  bool get blockNavPost => widget.blockNavPost;
 
   @override
   Widget build(BuildContext context) {
     final comments = feed.post.comments ?? [];
     final imageUrls = (feed.post.imageUrls as List<dynamic>);
     final myUid = FirebaseAuth.instance.currentUser?.uid;
+
+    // 오버라이드 적용된 현재 값
+    final currCategory = _catOverride ?? feed.post.category;
+    final currValue = _valOverride ?? feed.post.value;
 
     return Container(
       decoration: BoxDecoration(color: backgroundColor),
@@ -77,12 +111,26 @@ class FeedCard extends StatelessWidget {
             ),
           if (imageUrls.isNotEmpty)
             GestureDetector(
-              onTap: () {
+              onTap: () async {
                 if (!blockNavPost) {
-                  Navigator.push(context, MaterialPageRoute(builder: (_) => PostPage(feed: feed)));
+                  final deleted = await Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => PostPage(feed: feed)),
+                  );
+                  if (deleted == true) {
+                    // 부모가 리스트를 소유하므로, 여기서 콜백만 호출
+                    if (widget.onDeleted != null) {
+                      widget.onDeleted!.call();
+                    } else {
+                      // (부모 콜백이 없을 때만) 안전하게 여기서 스낵바
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('삭제되었습니다.')),
+                      );
+                    }
+                  }
                 }
               },
-              child: _buildAutoImageArea(context, imageUrls),
+              child: _buildAutoImageArea(context, imageUrls, currCategory, currValue),
             ),
           if (showIcons)
             Padding(
@@ -127,97 +175,101 @@ class FeedCard extends StatelessWidget {
   }
 
   Future<void> _openEditSheet(BuildContext context) async {
-    final visibilityInit = feed.post.visibility ?? 'PUBLIC';
-    final categoryInit = feed.post.category;
-    final valueInit = feed.post.value;
+    final visibilityInit = _visOverride ?? (feed.post.visibility ?? 'PUBLIC');
+    final categoryInit   = _catOverride ?? feed.post.category;
+    final valueInit      = _valOverride ?? feed.post.value;
 
     String vis = visibilityInit;
     String? cat = categoryInit;
     String? val = valueInit;
 
-    final List<String> categories = ['요리', '밀키트', '식당', '배달'];
-    final List<Map<String, String>> reviewValues = [
-      {'label': 'Fire', 'image': 'assets/fire.png'},
+    final categories = const ['요리', '밀키트', '식당', '배달'];
+    final reviewValues = const [
+      {'label': 'Fire',  'image': 'assets/fire.png'},
       {'label': 'Tasty', 'image': 'assets/tasty.png'},
-      {'label': 'Soso', 'image': 'assets/soso.png'},
+      {'label': 'Soso',  'image': 'assets/soso.png'},
       {'label': 'Woops', 'image': 'assets/woops.png'},
-      {'label': 'Wack', 'image': 'assets/wack.png'},
+      {'label': 'Wack',  'image': 'assets/wack.png'},
     ];
 
     final result = await showModalBottomSheet<dynamic>(
       context: context,
       isScrollControlled: true,
       builder: (_) {
-        return SafeArea(
-          top: false,
-          child: Padding(
-            padding: EdgeInsets.fromLTRB(16, 12, 16, 16 + MediaQuery.of(context).viewInsets.bottom),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.black26, borderRadius: BorderRadius.circular(2))),
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return SafeArea(
+              top: false,
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(16, 12, 16, 16 + MediaQuery.of(context).viewInsets.bottom),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text('게시물 편집', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                    TextButton.icon(
-                      onPressed: () => Navigator.pop(context, 'delete'),
-                      icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-                      label: const Text('삭제', style: TextStyle(color: Colors.redAccent)),
+                    Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.black26, borderRadius: BorderRadius.circular(2))),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('게시물 편집', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                        TextButton.icon(
+                          onPressed: () => Navigator.pop(context, 'delete'),
+                          icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                          label: const Text('삭제', style: TextStyle(color: Colors.redAccent)),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String>(
+                      value: vis,
+                      items: const [
+                        DropdownMenuItem(value: 'PUBLIC', child: Text('전체 공개')),
+                        DropdownMenuItem(value: 'FOLLOWERS', child: Text('팔로워만')),
+                        DropdownMenuItem(value: 'PRIVATE', child: Text('비공개')),
+                      ],
+                      onChanged: (v) => setModalState(() => vis = v ?? vis),
+                      decoration: const InputDecoration(labelText: '공개 범위', border: OutlineInputBorder()),
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String>(
+                      value: cat,
+                      items: categories.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+                      onChanged: (v) => setModalState(() => cat = v),
+                      decoration: const InputDecoration(labelText: '카테고리', border: OutlineInputBorder()),
+                    ),
+                    const SizedBox(height: 12),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: reviewValues.map((v) {
+                          final selected = val == v['label'];
+                          return ChoiceChip(
+                            label: Text(v['label']!),
+                            selected: selected,
+                            onSelected: (_) => setModalState(() => val = v['label']),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 44,
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.pop(context, {
+                          'visibility': vis,
+                          'category': cat,
+                          'value': val,
+                        }),
+                        child: const Text('저장'),
+                      ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  value: vis,
-                  items: const [
-                    DropdownMenuItem(value: 'PUBLIC', child: Text('전체 공개')),
-                    DropdownMenuItem(value: 'FOLLOWERS', child: Text('팔로워만')),
-                    DropdownMenuItem(value: 'PRIVATE', child: Text('비공개')),
-                  ],
-                  onChanged: (v) => vis = v ?? vis,
-                  decoration: const InputDecoration(labelText: '공개 범위', border: OutlineInputBorder()),
-                ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  value: cat,
-                  items: categories.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
-                  onChanged: (v) => cat = v,
-                  decoration: const InputDecoration(labelText: '카테고리', border: OutlineInputBorder()),
-                ),
-                const SizedBox(height: 12),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: reviewValues.map((v) {
-                      final selected = val == v['label'];
-                      return ChoiceChip(
-                        label: Text(v['label']!),
-                        selected: selected,
-                        onSelected: (_) => val = v['label'],
-                      );
-                    }).toList(),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  height: 44,
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.pop(context, {
-                      'visibility': vis,
-                      'category': cat,
-                      'value': val,
-                    }),
-                    child: const Text('저장'),
-                  ),
-                ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         );
       },
     );
@@ -237,53 +289,54 @@ class FeedCard extends StatelessWidget {
             ],
           ),
         );
+        // _openEditSheet() 안의 delete 분기
         if (ok == true) {
-          _postService.softDelete(feed.post.postId);
-          if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('삭제되었습니다.')));
+          await _postService.softDelete(feed.post.postId);
+          if (!mounted) return;
+
+          if (widget.onDeleted != null) {
+            // 목록 화면: 아이템만 제거 + 스낵바
+            widget.onDeleted!.call();
+            ScaffoldMessenger.of(context)
+                .showSnackBar(const SnackBar(content: Text('삭제되었습니다.')));
+          } else {
+            // 상세 화면: 페이지 닫으면서 결과 전달
+            Navigator.of(context).pop(true);
           }
+          return;
         }
         return;
       }
 
       final map = result as Map<String, dynamic>;
-      _postService.updateFields(
+      await _postService.updateFields(
         postId: feed.post.postId,
-        visibility: map['visibility'],
-        category: map['category'],
-        value: map['value'],
+        visibility: map['visibility'] as String?,
+        category: map['category'] as String?,
+        value: map['value'] as String?,
       );
-      setState() {
-        if (map['visibility'] != null ){
-          feed.post.visibility = map['visibility'];
-        }
-        if (map['category'] != null ){
-          feed.post.category = map['category'];
-        }
-        if (map['value'] != null ){
-          feed.post.value = map['value'];
-        }
-      }
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('수정되었습니다.')));
-      }
+
+      // 불변 모델은 건드리지 않고 화면만 즉시 반영
+      setState(() {
+        _visOverride = map['visibility'] as String? ?? _visOverride;
+        _catOverride = map['category'] as String? ?? _catOverride;
+        _valOverride = map['value'] as String? ?? _valOverride;
+      });
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('수정되었습니다.')));
     } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('실패: $e')));
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('실패: $e')));
     }
   }
 
-  String _visLabel(String v) {
-    switch (v) {
-      case 'PUBLIC': return '전체 공개';
-      case 'FOLLOWERS': return '팔로워만';
-      case 'PRIVATE': return '비공개';
-      default: return v;
-    }
-  }
-
-  Widget _buildAutoImageArea(BuildContext context, List<dynamic> imageUrls) {
+  Widget _buildAutoImageArea(
+    BuildContext context,
+    List<dynamic> imageUrls,
+    String? currCategory,
+    String? currValue,
+  ) {
     if (imageHeight != null) {
       if (imageUrls.length == 1) {
         final String url = imageUrls.first as String? ?? '';
@@ -327,8 +380,8 @@ class FeedCard extends StatelessWidget {
             children: [
               FeedImages(
                 imageUrls: imageUrls,
-                category: feed.post.category,
-                value: feed.post.value ?? '',
+                category: currCategory ?? feed.post.category,
+                value: currValue ?? feed.post.value ?? '',
                 recipeId: feed.post.recipeId,
                 recipeTitle: "",
                 showTags: showTags,
@@ -389,8 +442,8 @@ class FeedCard extends StatelessWidget {
               children: [
                 FeedImages(
                   imageUrls: imageUrls,
-                  category: feed.post.category,
-                  value: feed.post.value ?? '',
+                  category: currCategory ?? feed.post.category,
+                  value: currValue ?? feed.post.value ?? '',
                   recipeId: feed.post.recipeId,
                   recipeTitle: "",
                   showTags: showTags,

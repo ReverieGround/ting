@@ -161,24 +161,32 @@ class _NearbyPageState extends State<NearbyPage>
   }
 
   Widget _buildFeedGrid(List<FeedData> feeds) {
+    if (feeds.isEmpty) {
+      return const Center(child: Text("게시물이 없습니다."));
+    }
     return RefreshIndicator(
       onRefresh: () => _loadFeeds(tabIndex: _tabController.index),
       child: CustomScrollView(
-        primary: true,
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
-          if (feeds.isEmpty)
-            const SliverFillRemaining(
-              hasScrollBody: false,
-              child: Center(child: Text("게시물이 없습니다.")),
-            )
-          else
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 4.0),
-              sliver: FeedGrid(feeds: feeds),
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 4.0),
+            sliver: FeedGrid(
+              feeds: feeds,
+              onDeleted: (postId) {
+                setState(() {
+                  // 중요: 여기의 feeds는 state에 있는 동일 리스트여야 함 (복사본 X)
+                  feeds.removeWhere((f) => f.post.postId == postId);
+                });
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('삭제되었습니다.')),
+                );
+              },
             ),
+          ),
         ],
       ),
     );
   }
+
 }
