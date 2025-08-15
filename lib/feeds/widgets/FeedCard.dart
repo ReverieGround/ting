@@ -27,6 +27,7 @@ class FeedCard extends StatelessWidget {
   final MainAxisAlignment iconAlignment;
   final bool isPinned;                 
   final VoidCallback? onTogglePin;     
+  final bool blockNavPost;
 
   const FeedCard({
     Key? key,
@@ -46,6 +47,7 @@ class FeedCard extends StatelessWidget {
     this.iconSize = 22.0,
     this.iconGap = 4.0,
     this.iconAlignment = MainAxisAlignment.start,
+    this.blockNavPost = false,
   }) : super(key: key);
 
   @override
@@ -80,10 +82,12 @@ class FeedCard extends StatelessWidget {
           if (imageUrls.isNotEmpty)
             GestureDetector(
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => PostPage(feed: feed)),
-                );
+                if (!blockNavPost){
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => PostPage(feed: feed)),
+                  );
+                }
               },
               child: _buildAutoImageArea(context, imageUrls),
             ),
