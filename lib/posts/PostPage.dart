@@ -44,81 +44,88 @@ class _PostPageState extends State<PostPage> {
     final kb = MediaQuery.of(context).viewInsets.bottom; // 키보드 높이
 
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       backgroundColor: widget.backgroundColor,
       body: SafeArea(
         bottom: false,
+        child: Listener(
+          behavior: HitTestBehavior.translucent,
+          onPointerDown: (_) {
+            FocusManager.instance.primaryFocus?.unfocus();
+          },
         child: Stack(
-          children: [
-            Positioned.fill(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.only(bottom: inputHeight + 24 + kb), // ⬅️ 변경
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    AbsorbPointer(
-                      absorbing: false,
-                      child: FeedCard(
-                        feed: widget.feed,
-                        fontColor: widget.fontColor,
-                        backgroundColor: widget.backgroundColor,
-                        iconAlignment: MainAxisAlignment.start,
-                        blockNavPost: true, 
-                        iconVGap: 10,
-                        iconHGap: 4,
+            children: [
+              Positioned.fill(
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.only(bottom: inputHeight + 24 + kb), // ⬅️ 변경
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      AbsorbPointer(
+                        absorbing: false,
+                        child: FeedCard(
+                          feed: widget.feed,
+                          fontColor: widget.fontColor,
+                          backgroundColor: widget.backgroundColor,
+                          iconAlignment: MainAxisAlignment.start,
+                          blockNavPost: true, 
+                          iconVGap: 10,
+                          iconHGap: 4,
+                        ),
                       ),
-                    ),
-                    const Divider(
-                      indent: 0, endIndent: 0, thickness: 1, color: Colors.grey,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(4),
-                      child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>( // ⬅️ 제네릭
-                        stream: PostService().commentsStream(postId: widget.feed.post.postId),
-                        builder: (context, snap) {
-                          if (snap.connectionState == ConnectionState.waiting) {
-                            return const Center(
-                              child: Padding(
-                                padding: EdgeInsets.symmetric(vertical: 24),
-                                child: CircularProgressIndicator(),
-                              ),
-                            );
-                          }
-                          if (snap.hasError) {
-                            return const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 16),
-                              child: Text('댓글을 불러오지 못했습니다.', style: TextStyle(color: Colors.grey)),
-                            );
-                          }
-                          final docs = snap.data?.docs ?? [];
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              ...docs.map((d) {
-                                final c = d.data();
-                                return CommentTile(
-                                  postId: widget.feed.post.postId,
-                                  commentId: c['comment_id'],
-                                  userId: c['user_id'],
-                                  createdAt: c['created_at'],
-                                  content: (c['content'] ?? '') as String,
-                                  dark: true,
-                                );
-                              }),
-                            ],
-                          );
-                        },
+                      const Divider(
+                        indent: 0, endIndent: 0, thickness: 1, color: Colors.grey,
                       ),
-                    ),
-                  ],
+                      Padding(
+                        padding: const EdgeInsets.all(4),
+                        child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>( // ⬅️ 제네릭
+                          stream: PostService().commentsStream(postId: widget.feed.post.postId),
+                          builder: (context, snap) {
+                            if (snap.connectionState == ConnectionState.waiting) {
+                              return const Center(
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 24),
+                                  child: CircularProgressIndicator(),
+                                ),
+                              );
+                            }
+                            if (snap.hasError) {
+                              return const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 16),
+                                child: Text('댓글을 불러오지 못했습니다.', style: TextStyle(color: Colors.grey)),
+                              );
+                            }
+                            final docs = snap.data?.docs ?? [];
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                ...docs.map((d) {
+                                  final c = d.data();
+                                  return CommentTile(
+                                    postId: widget.feed.post.postId,
+                                    commentId: c['comment_id'],
+                                    userId: c['user_id'],
+                                    createdAt: c['created_at'],
+                                    content: (c['content'] ?? '') as String,
+                                    dark: true,
+                                  );
+                                }),
+                              ],
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            // _buildAppNav(),
-            Positioned(
-              left: 0, right: 0, bottom: 0,
-              child: _buildCommentInputPanel(inputHeight),
-            ),
-          ],
+              // _buildAppNav(),
+              Positioned(
+                left: 0, right: 0, bottom: 0,
+                child: _buildCommentInputPanel(),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -170,21 +177,20 @@ class _PostPageState extends State<PostPage> {
     }
   }
 
-  Widget _buildCommentInputPanel(double height) {
-    final kb = MediaQuery.of(context).viewInsets.bottom;   // 키보드 높이
+  // 입력 바: kb 제거, safeBottom만 사용 + height 고정 X
+  Widget _buildCommentInputPanel() {
     final safeBottom = MediaQuery.of(context).padding.bottom;
     const double kCommentBarHeight = 48;
-    
+
     return SafeArea(
       top: false,
       child: Container(
-        height: height,
-        width: height,
+        width: double.infinity,
         color: const Color.fromARGB(255, 15, 15, 15),
         padding: EdgeInsets.only(
           left: 12,
           right: 12,
-          bottom: (kb > 0 ? kb : safeBottom) + 8, // ⬅️ 키보드/세이프 적용
+          bottom: safeBottom,
           top: 6,
         ),
         child: Row(
@@ -203,7 +209,7 @@ class _PostPageState extends State<PostPage> {
                     style: const TextStyle(color: Colors.white),
                     textInputAction: TextInputAction.send,
                     onSubmitted: (_) => _handleSubmit(),
-                    textAlignVertical: TextAlignVertical.center, // ✅ 세로 중앙 정렬
+                    textAlignVertical: TextAlignVertical.center,
                     decoration: InputDecoration(
                       constraints: const BoxConstraints(minHeight: kCommentBarHeight),
                       filled: true,
