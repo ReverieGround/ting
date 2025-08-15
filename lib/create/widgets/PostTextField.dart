@@ -16,6 +16,7 @@ class PostTextField extends StatelessWidget {
     return TextField(
       controller: controller,
       maxLines: 4,
+      onSubmitted: (_) => FocusScope.of(context).unfocus(), // ✅ 엔터 누르면 키보드 닫힘
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: TextStyle(color: Colors.grey.shade500, fontSize: 14),
