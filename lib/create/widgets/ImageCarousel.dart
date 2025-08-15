@@ -37,18 +37,27 @@ class ImageCarousel extends StatelessWidget {
                 borderRadius: BorderRadius.circular(16),
               ),
               child: images.isEmpty
-                  ? const Center(child: Icon(Icons.add_a_photo, size: 40, color: Colors.white))
+                  ? const Center(
+                      child: Icon(Icons.add_a_photo, size: 40, color: Colors.white),
+                    )
                   : ClipRRect(
                       borderRadius: BorderRadius.circular(16),
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: images.length,
-                        itemBuilder: (_, i) => Image.file(
-                          images[i],
-                          width: 220,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
+                      child: images.length == 1
+                          ? Image.file(
+                              images.first,
+                              width: double.infinity,
+                              height: double.infinity,
+                              fit: BoxFit.cover,
+                            )
+                          : ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: images.length,
+                              itemBuilder: (_, i) => Image.file(
+                                images[i],
+                                width: 220,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
                     ),
             ),
           ),
