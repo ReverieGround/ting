@@ -36,7 +36,16 @@ class _PostPageState extends State<PostPage> {
   bool _isPosting = false;
 
   final _postService = PostService();
+  late final Stream<QuerySnapshot<Map<String, dynamic>>> _commentsStream;
+
   void refreshComments() => setState(() {});
+  
+  @override
+  void initState() {
+    super.initState();
+    _commentsStream =
+        _postService.commentsStream(postId: widget.feed.post.postId);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -79,7 +88,7 @@ class _PostPageState extends State<PostPage> {
                       Padding(
                         padding: const EdgeInsets.all(4),
                         child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>( // ⬅️ 제네릭
-                          stream: PostService().commentsStream(postId: widget.feed.post.postId),
+                          stream: _commentsStream,
                           builder: (context, snap) {
                             if (snap.connectionState == ConnectionState.waiting) {
                               return const Center(
@@ -168,10 +177,10 @@ class _PostPageState extends State<PostPage> {
       );
       if (id != null) {
         _commentController.clear();
-        refreshComments();
+        // refreshComments();
       }
     } catch (e) {
-      log('addComment error: $e');
+      debugPrint('addComment error: $e');
     } finally {
       if (mounted) setState(() => _isPosting = false);
     }
