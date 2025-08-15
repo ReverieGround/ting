@@ -149,6 +149,7 @@ class LoginPageState extends State<LoginPage> {
                             profileImageUrl: cred.user?.photoURL,
                           );
                           await _authService.saveIdToken();
+                          await _authService.markHasLoginBefore();
                           if (!mounted) return;
                           Navigator.of(context).pushReplacement(
                             MaterialPageRoute(builder: (_) => const HomePage()),
