@@ -302,8 +302,16 @@ class PostService {
     DateTime? capturedAt,
   }) async {
     try {
-      final doc = _fs.collection('posts').doc();
       final uid = _auth.currentUser?.uid;
+      if (uid == null) {
+        throw FirebaseException(
+          plugin: 'auth',
+          code: 'unauthenticated',
+          message: '로그인이 필요합니다.',
+        );
+      }
+      final doc = _fs.collection('posts').doc();
+      debugPrint(uid);
       await doc.set({
         'post_id': doc.id,
         'user_id': uid,

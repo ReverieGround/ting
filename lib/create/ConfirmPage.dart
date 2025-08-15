@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:intl/intl.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 import '../../services/PostService.dart';
 import '../../services/StorageService.dart';
@@ -42,53 +43,119 @@ class _ConfirmPageState extends State<ConfirmPage> {
     if (!mounted) return;
     setState(() => isUploading = true);
 
+    final failures = <String>[];
+
     try {
       bool allOk = true;
 
       for (int i = 0; i < widget.postInputs.length; i++) {
         final input = widget.postInputs[i];
-        if (input.imageFiles.isEmpty || input.content.trim().isEmpty) {
+        final meal = mealNames[i % mealNames.length];
+
+        // 0) 입력 검사
+        if (input.imageFiles.isEmpty) {
+          // allOk = false;
+          final msg = "[$i:$meal] 이미지가 비어 있음";
+          failures.add(msg);
+          debugPrint("[UploadPosts] $msg");
+          continue;
+        }
+        if (input.content.trim().isEmpty) {
           allOk = false;
+          final msg = "[$i:$meal] 내용이 비어 있음";
+          failures.add(msg);
+          debugPrint("[UploadPosts] $msg");
           continue;
         }
 
-        final urls = await _storageService.uploadPostImages(input.imageFiles);
-        if (urls.isEmpty) {
+        // 1) 이미지 업로드
+        List<String> urls = const [];
+        try {
+          urls = await _storageService.uploadPostImages(input.imageFiles);
+          if (urls.isEmpty) {
+            allOk = false;
+            final msg = "[$i:$meal] 이미지 업로드 실패: 빈 URL 목록";
+            failures.add(msg);
+            debugPrint("[UploadPosts] $msg");
+            continue;
+          }
+        } catch (e, st) {
           allOk = false;
+          final msg = "[$i:$meal] 이미지 업로드 예외: $e";
+          failures.add(msg);
+          debugPrint("[UploadPosts] $msg\n$st");
           continue;
         }
 
-        final titlePrefix = mealNames[i % mealNames.length];
-
+        // 2) capturedAt 파싱
         DateTime? capturedAt;
         try {
           capturedAt = DateFormat('yyyy. MM. dd HH:mm').parse(input.capturedDate);
-        } catch (_) {}
+        } catch (e) {
+          // 실패해도 진행 (서버타임으로 대체되니까)
+          debugPrint("[UploadPosts] [$i:$meal] capturedDate 파싱 실패: ${input.capturedDate} ($e)");
+        }
 
-        final postId = await _postService.createPost(
-          title: "$titlePrefix 식사",
-          content: input.content,
-          imageUrls: urls,
-          visibility: visibility,
-          recipeId: input.recommendRecipe ? "some-recipe-id" : null,
-          category: "${input.selectedCategory}",
-          value: "${input.selectedValue}",
-          region: null,
-          capturedAt: capturedAt,
-        );
+        // 3) Firestore create
+        try {
+          // visibility 값이 규칙 허용 값인지 사전 확인 (PUBLIC/FOLLOWER/PRIVATE)
+          if (!(visibility == 'PUBLIC' || visibility == 'FOLLOWER' || visibility == 'PRIVATE')) {
+            allOk = false;
+            final msg = "[$i:$meal] visibility 값 불일치: $visibility";
+            failures.add(msg);
+            debugPrint("[UploadPosts] $msg");
+            continue;
+          }
 
-        if (postId == null) {
+          final postId = await _postService.createPost(
+            title: "$meal 식사",
+            content: input.content,
+            imageUrls: urls,
+            visibility: visibility,
+            recipeId: input.recommendRecipe ? "some-recipe-id" : null,
+            category: "${input.selectedCategory}",
+            value: "${input.selectedValue}",
+            region: null,
+            capturedAt: capturedAt,
+          );
+
+          if (postId == null) {
+            allOk = false;
+            final msg = "[$i:$meal] createPost 결과 null";
+            failures.add(msg);
+            debugPrint("[UploadPosts] $msg");
+          } else {
+            debugPrint("[UploadPosts] [$i:$meal] 업로드 성공: postId=$postId");
+          }
+        } on FirebaseException catch (e, st) {
           allOk = false;
+          final msg = "[$i:$meal] Firestore 예외: ${e.code} ${e.message}";
+          failures.add(msg);
+          debugPrint("[UploadPosts] $msg\n$st");
+        } catch (e, st) {
+          allOk = false;
+          final msg = "[$i:$meal] 알 수 없는 예외: $e";
+          failures.add(msg);
+          debugPrint("[UploadPosts] $msg\n$st");
         }
       }
 
       if (!mounted) return;
       setState(() => isUploading = false);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(allOk ? '모든 게시물 업로드 완료!' : '일부 게시물 업로드 실패 또는 건너뜀.')),
-      );
-      if (allOk) Navigator.pop(context, true);
+      // UI 알림
+      if (allOk) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('모든 게시물 업로드 완료!')),
+        );
+        Navigator.pop(context, true);
+      } else {
+        // 실패 이유를 2~3줄로 요약해서 보여주기
+        final brief = failures.take(3).join(' · ');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('일부 실패: $brief${failures.length > 3 ? " (+${failures.length - 3}건)" : ""}')),
+        );
+      }
     } finally {
       if (mounted && isUploading) {
         setState(() => isUploading = false);

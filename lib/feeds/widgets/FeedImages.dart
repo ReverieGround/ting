@@ -169,11 +169,11 @@ class _FeedImageCarouselState extends State<FeedImages> {
                       final isActive = index == _currentPage;
                       return Expanded(
                         child: Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 2),
-                          height: 3,
+                          // margin: const EdgeInsets.symmetric(horizontal: 2),
+                          height: 5,
                           decoration: BoxDecoration(
-                            color: isActive ? Colors.white : Colors.white30,
-                            borderRadius: BorderRadius.circular(3),
+                            color: isActive ? Color.fromRGBO(255, 110, 199, 1) : Colors.white30,
+                            // borderRadius: BorderRadius.circular(3),
                           ),
                         ),
                       );

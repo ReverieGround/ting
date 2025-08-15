@@ -18,15 +18,46 @@ class LoginPageState extends State<LoginPage> {
   final LocalAuthentication _localAuth = LocalAuthentication();
   final AuthService _authService = AuthService();  
   bool _rememberMe = false;
+  bool _autoBioChecked = false;
 
   @override
   void initState() {
     super.initState();
-    _tryBiometricLogin();
+    _prepareAutoBiometric(); // ✅ 콜드스타트 대비: 조건 만족 시에만 post-frame으로 인증 시도
   }
   
+  Future<void> _prepareAutoBiometric() async {
+    try {
+      // 1) 예전에 로그인한 적 있는지 (flutter_secure_storage / shared_prefs 등)
+      final hasLoginBefore = await _authService.hasLoginBefore(); // ex) secure storage bool
+      if (!hasLoginBefore) return;
+
+      // 2) 저장된 토큰이 있는지 (단순 존재 여부; 유효성은 아래 verify에서 검사)
+      final hasStoredToken = await _authService.hasStoredIdToken();
+      if (!hasStoredToken) return;
+
+      // 3) 바이오메트릭 가능/지원 여부
+      final hasBiometrics = await _localAuth.canCheckBiometrics;
+      final isSupported = await _localAuth.isDeviceSupported();
+      if (!hasBiometrics || !isSupported) return;
+
+      // ✅ 모든 조건 OK → UI가 그려진 뒤에 트리거 (콜드스타트 초기화 경합 방지)
+      if (!mounted) return;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && !_autoBioChecked) {
+          _autoBioChecked = true;
+          _tryBiometricLogin();
+        }
+      });
+    } catch (e) {
+      debugPrint('prepare auto biometric failed: $e');
+    }
+  }
+
+  // 기존 _tryBiometricLogin는 그대로 두되, 예외 케이스만 조금 더 안전하게 처리
   Future<void> _tryBiometricLogin() async {
     try {
+      // 여기선 다시 한 번만 가벼운 가드(중복 방지)
       final hasBiometrics = await _localAuth.canCheckBiometrics;
       final isSupported = await _localAuth.isDeviceSupported();
       if (!hasBiometrics || !isSupported) return;
@@ -35,12 +66,13 @@ class LoginPageState extends State<LoginPage> {
         localizedReason: '바이오 인증으로 자동 로그인',
         options: const AuthenticationOptions(
           biometricOnly: true,
-          stickyAuth: true, // 앱 전환 등 상황에서 인증 유지 도움
+          stickyAuth: true,
         ),
       );
       if (!didAuthenticate) return;
 
-      final success = await _authService.verifyStoredIdToken(); // ✅ 저장된 토큰 vs 현재 토큰
+      // 저장된 토큰의 유효성 검증 (만료/폐기면 false)
+      final success = await _authService.verifyStoredIdToken();
       if (!success) return;
 
       if (!mounted) return;
@@ -48,33 +80,12 @@ class LoginPageState extends State<LoginPage> {
         MaterialPageRoute(builder: (_) => const HomePage()),
       );
     } on PlatformException catch (e) {
+      // NotEnrolled / PasscodeNotSet / NotAvailable 등은 조용히 무시
       debugPrint('biometric error: $e');
     } catch (e) {
       debugPrint('biometric login failed: $e');
     }
   }
-
-  Future<void> resendVerificationEmail() async {
-    try {
-      final ok = await _authService.sendEmailVerification();
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(ok ? "인증 메일을 다시 보냈습니다." : "로그인이 필요합니다.")),
-      );
-    } on FirebaseAuthException catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("메일 전송 실패: ${e.message ?? '알 수 없는 오류'}")),
-      );
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("메일 전송에 실패했습니다.")),
-      );
-    }
-  } 
-  
   @override
   Widget build(BuildContext context) {
     return Scaffold(

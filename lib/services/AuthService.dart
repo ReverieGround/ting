@@ -187,4 +187,20 @@ class AuthService {
     await u.sendEmailVerification();
     return true;
   }
+
+  Future<bool> hasLoginBefore() async {
+    // 예: "has_logged_in_before" 플래그
+    // 최초 성공 로그인 시 true로 저장해두고, 로그아웃 시 false로 갱신
+    return await _storage.read(key: 'has_logged_in_before') == 'true';
+  }
+
+  Future<bool> hasStoredIdToken() async {
+    final token = await _storage.read(key: 'id_token');
+    return token != null && token.isNotEmpty;
+  }
+
+  // 최초 로그인 성공 지점에서:
+  Future<void> markHasLoginBefore() async {
+    await _storage.write(key: 'has_logged_in_before', value: 'true');
+  }
 }
