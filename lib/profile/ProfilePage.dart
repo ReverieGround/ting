@@ -35,7 +35,7 @@ class ProfilePage extends StatefulWidget {
   State<ProfilePage> createState() => _ProfilePageState();
 }
 
-class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStateMixin {
+class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   late ProfileInfo profileInfo = ProfileInfo.empty();
   bool isLoading = true;
   bool isFeedsLoading = false;
@@ -57,6 +57,9 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
     if (!mounted) return;
     setState(fn);
   }
+  
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {

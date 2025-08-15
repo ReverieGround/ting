@@ -1,6 +1,7 @@
 // feeds/widgets/FeedImages.dart
 import 'package:flutter/material.dart';
 import 'FeedTag.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class FeedImages extends StatefulWidget {
   final List<dynamic> imageUrls;
@@ -11,11 +12,10 @@ class FeedImages extends StatefulWidget {
   final VoidCallback? onRecipeButtonPressed;
   final bool showTags;
 
-  // 높이 제어
-  final double? height;        // 고정 높이(지정 시 우선)
-  final double? maxHeight;     // 자동 계산 시 최대 높이
-  final double aspectRatio;    // 자동 계산용 가로:세로 비율
-  final BoxFit fit;            // BoxFit.contain => 크롭 없음
+  final double? height;
+  final double? maxHeight;
+  final double aspectRatio;
+  final BoxFit fit;
 
   const FeedImages({
     Key? key,
@@ -26,10 +26,10 @@ class FeedImages extends StatefulWidget {
     this.recipeTitle,
     this.onRecipeButtonPressed,
     this.showTags = true,
-    this.height,                 // null이면 자동 계산
-    this.maxHeight = 350,              // null이면 제한 없음
-    this.aspectRatio = 4 / 3,    // 기본 비율
-    this.fit = BoxFit.cover,     // 필요 시 BoxFit.contain
+    this.height,
+    this.maxHeight = 350,
+    this.aspectRatio = 4 / 3,
+    this.fit = BoxFit.cover,
   }) : super(key: key);
 
   @override
@@ -44,6 +44,12 @@ class _FeedImageCarouselState extends State<FeedImages> {
   void dispose() {
     _pageController.dispose();
     super.dispose();
+  }
+
+  (int wPx, int hPx) _targetPx(double w, double h, double dpr) {
+    final wi = (w * dpr).round().clamp(1, 4096);
+    final hi = (h * dpr).round().clamp(1, 4096);
+    return (wi, hi);
   }
 
   Widget _buildOverlayButton({
@@ -77,9 +83,11 @@ class _FeedImageCarouselState extends State<FeedImages> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final width = constraints.maxWidth.isFinite ? constraints.maxWidth : MediaQuery.of(context).size.width;
-        double effectiveHeight;
+        final screenW = MediaQuery.of(context).size.width;
+        final dpr = MediaQuery.of(context).devicePixelRatio;
+        final width = constraints.maxWidth.isFinite ? constraints.maxWidth : screenW;
 
+        double effectiveHeight;
         if (widget.height != null) {
           effectiveHeight = widget.height!;
         } else {
@@ -91,6 +99,8 @@ class _FeedImageCarouselState extends State<FeedImages> {
           }
         }
 
+        final (wPx, hPx) = _targetPx(width, effectiveHeight, dpr);
+
         return SizedBox(
           height: effectiveHeight,
           child: Stack(
@@ -100,17 +110,28 @@ class _FeedImageCarouselState extends State<FeedImages> {
                 itemCount: widget.imageUrls.length,
                 onPageChanged: (i) => setState(() => _currentPage = i),
                 itemBuilder: (context, index) {
+                  final url = widget.imageUrls[index] as String? ?? '';
                   return ClipRRect(
                     borderRadius: BorderRadius.circular(0),
                     child: Container(
                       width: double.infinity,
                       height: double.infinity,
-                      color: Colors.black, // contain일 때 레터박스 배경
-                      child: Image.network(
-                        widget.imageUrls[index],
-                        fit: widget.fit, // cover/contain 선택
-                        width: double.infinity,
-                        height: double.infinity,
+                      color: Colors.black,
+                      child: CachedNetworkImage(
+                        imageUrl: url,
+                        fit: widget.fit,
+                        // 메모리 디코딩 크기 ↓
+                        memCacheWidth: wPx,
+                        memCacheHeight: hPx,
+                        // 디스크에도 축소본 저장 ↓
+                        maxWidthDiskCache: wPx,
+                        maxHeightDiskCache: hPx,
+                        fadeInDuration: Duration.zero,
+                        placeholderFadeInDuration: Duration.zero,
+                        progressIndicatorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                        errorWidget: (_, __, ___) => const Icon(Icons.broken_image, color: Colors.white54),
+                        useOldImageOnUrlChange: true,
+                        alignment: Alignment.center,
                       ),
                     ),
                   );
@@ -169,11 +190,9 @@ class _FeedImageCarouselState extends State<FeedImages> {
                       final isActive = index == _currentPage;
                       return Expanded(
                         child: Container(
-                          // margin: const EdgeInsets.symmetric(horizontal: 2),
                           height: 5,
                           decoration: BoxDecoration(
-                            color: isActive ? Color.fromRGBO(255, 110, 199, 1) : Colors.white30,
-                            // borderRadius: BorderRadius.circular(3),
+                            color: isActive ? const Color.fromRGBO(255, 110, 199, 1) : Colors.white30,
                           ),
                         ),
                       );
