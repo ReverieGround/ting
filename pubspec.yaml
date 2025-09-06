@@ -133,6 +133,8 @@ flutter:
     - assets/login_icons/naver_logo.png
     - assets/vibeyum_logo.png
     - assets/logo.png
+    - assets/logo_black.png
+    - assets/logo_white.png
     - assets/navi_home_black.png
     - assets/navi_home_pink.png
     - assets/navi_profile_black.png
