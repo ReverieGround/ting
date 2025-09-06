@@ -62,7 +62,6 @@ class FeedCard extends StatefulWidget {
 class _FeedCardState extends State<FeedCard> {
   final _postService = PostService();
 
-  // 서버 저장 후, 화면만 즉시 반영하기 위한 로컬 오버라이드
   String? _visOverride;
   String? _catOverride;
   String? _valOverride;
@@ -88,16 +87,22 @@ class _FeedCardState extends State<FeedCard> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    final Color effectiveFont =
+        fontColor == Colors.black ? theme.colorScheme.onSurface : fontColor;
+    final Color effectiveBg =
+        backgroundColor == Colors.white ? theme.cardColor : backgroundColor;
+
     final comments = feed.post.comments ?? [];
     final imageUrls = (feed.post.imageUrls as List<dynamic>);
     final myUid = FirebaseAuth.instance.currentUser?.uid;
 
-    // 오버라이드 적용된 현재 값
     final currCategory = _catOverride ?? feed.post.category;
     final currValue = _valOverride ?? feed.post.value;
 
     return Container(
-      decoration: BoxDecoration(color: backgroundColor),
+      decoration: BoxDecoration(color: effectiveBg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -108,7 +113,7 @@ class _FeedCardState extends State<FeedCard> {
               userId: feed.user.userId,
               userTitle: feed.user.title,
               createdAt: formatTimestamp(feed.post.createdAt),
-              fontColor: fontColor,
+              fontColor: effectiveFont,
               isMine: feed.user.userId == myUid,
               onEdit: () => _openEditSheet(context),
             ),
@@ -121,13 +126,17 @@ class _FeedCardState extends State<FeedCard> {
                     MaterialPageRoute(builder: (_) => PostPage(feed: feed)),
                   );
                   if (deleted == true) {
-                    // 부모가 리스트를 소유하므로, 여기서 콜백만 호출
                     if (widget.onDeleted != null) {
                       widget.onDeleted!.call();
                     } else {
-                      // (부모 콜백이 없을 때만) 안전하게 여기서 스낵바
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('삭제되었습니다.')),
+                        SnackBar(
+                          content: Text(
+                            '삭제되었습니다.',
+                            style: TextStyle(color: theme.colorScheme.onPrimary),
+                          ),
+                          backgroundColor: theme.colorScheme.primary,
+                        ),
                       );
                     }
                   }
@@ -152,7 +161,7 @@ class _FeedCardState extends State<FeedCard> {
                       onToggleCompleted: null,
                       fontSize: iconSize - 3,
                       iconSize: iconSize,
-                      fontColor: fontColor,
+                      fontColor: effectiveFont,
                     ),
                     const SizedBox(width: 12),
                     FeedReplyIcon(
@@ -160,7 +169,7 @@ class _FeedCardState extends State<FeedCard> {
                       initialCommentCount: feed.numComments,
                       fontSize: iconSize - 3,
                       iconSize: iconSize,
-                      fontColor: fontColor,
+                      fontColor: effectiveFont,
                     ),
                   ],
                 ),
@@ -170,7 +179,7 @@ class _FeedCardState extends State<FeedCard> {
             FeedContent(
               content: feed.post.content,
               comments: comments,
-              fontColor: fontColor,
+              fontColor: effectiveFont,
             ),
         ],
       ),
@@ -178,6 +187,8 @@ class _FeedCardState extends State<FeedCard> {
   }
 
   Future<void> _openEditSheet(BuildContext context) async {
+    final theme = Theme.of(context);
+
     final visibilityInit = _visOverride ?? (feed.post.visibility ?? 'PUBLIC');
     final categoryInit   = _catOverride ?? feed.post.category;
     final valueInit      = _valOverride ?? feed.post.value;
@@ -208,16 +219,22 @@ class _FeedCardState extends State<FeedCard> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.black26, borderRadius: BorderRadius.circular(2))),
+                    Container(
+                      width: 40, height: 4,
+                      decoration: BoxDecoration(
+                        color: theme.dividerColor.withOpacity(.5),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
                     const SizedBox(height: 12),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('게시물 편집', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                        Text('게시물 편집', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
                         TextButton.icon(
                           onPressed: () => Navigator.pop(context, 'delete'),
-                          icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-                          label: const Text('삭제', style: TextStyle(color: Colors.redAccent)),
+                          icon: Icon(Icons.delete_outline, color: theme.colorScheme.error),
+                          label: Text('삭제', style: TextStyle(color: theme.colorScheme.error)),
                         ),
                       ],
                     ),
@@ -292,18 +309,19 @@ class _FeedCardState extends State<FeedCard> {
             ],
           ),
         );
-        // _openEditSheet() 안의 delete 분기
         if (ok == true) {
           await _postService.softDelete(feed.post.postId);
           if (!mounted) return;
 
           if (widget.onDeleted != null) {
-            // 목록 화면: 아이템만 제거 + 스낵바
             widget.onDeleted!.call();
-            ScaffoldMessenger.of(context)
-                .showSnackBar(const SnackBar(content: Text('삭제되었습니다.')));
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('삭제되었습니다.', style: TextStyle(color: theme.colorScheme.onPrimary)),
+                backgroundColor: theme.colorScheme.primary,
+              ),
+            );
           } else {
-            // 상세 화면: 페이지 닫으면서 결과 전달
             Navigator.of(context).pop(true);
           }
           return;
@@ -319,7 +337,6 @@ class _FeedCardState extends State<FeedCard> {
         value: map['value'] as String?,
       );
 
-      // 불변 모델은 건드리지 않고 화면만 즉시 반영
       setState(() {
         _visOverride = map['visibility'] as String? ?? _visOverride;
         _catOverride = map['category'] as String? ?? _catOverride;
@@ -327,10 +344,20 @@ class _FeedCardState extends State<FeedCard> {
       });
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('수정되었습니다.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('수정되었습니다.', style: TextStyle(color: theme.colorScheme.onPrimary)),
+          backgroundColor: theme.colorScheme.primary,
+        ),
+      );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('실패: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('실패: $e', style: TextStyle(color: theme.colorScheme.onError)),
+          backgroundColor: theme.colorScheme.error,
+        ),
+      );
     }
   }
 
@@ -420,16 +447,30 @@ class _FeedCardState extends State<FeedCard> {
         ),
       ),
     );
-  }
+    }
 
   Widget _buildBottomWriterOverlay(BuildContext context) {
+    final theme = Theme.of(context);
     final dpr = MediaQuery.of(context).devicePixelRatio;
     final avatarPx = (24 * dpr).round();
+
+    final overlay = theme.colorScheme.inverseSurface.withOpacity(0.78);
+    final fg = theme.colorScheme.onInverseSurface;
+
     return Positioned(
       left: 0, right: 0, bottom: 0,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
-        color: const Color.fromRGBO(0, 0, 0, 0.6),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.bottomCenter,
+            end: Alignment.topCenter,
+            colors: [
+              theme.colorScheme.inverseSurface.withOpacity(0.85),
+              theme.colorScheme.inverseSurface.withOpacity(0.0),
+            ],
+          ),
+        ),
         child: Row(
           children: [
             ClipOval(
@@ -445,13 +486,18 @@ class _FeedCardState extends State<FeedCard> {
             const SizedBox(width: 5),
             Text(
               feed.user.userName,
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: fg,
+                fontWeight: FontWeight.bold,
+                shadows: [Shadow(color: Colors.black54, blurRadius: 4, offset: Offset(0, 1))],
+              ),
             ),
           ],
         ),
       ),
     );
   }
+
 
   double _autoAspectByCount(int count) {
     if (count <= 1) return 4 / 5;

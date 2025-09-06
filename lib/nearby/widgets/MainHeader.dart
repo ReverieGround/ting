@@ -30,12 +30,14 @@ class MainHeader extends StatefulWidget implements PreferredSizeWidget {
 class _MainHeaderState extends State<MainHeader> {
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Container(
-      color: Colors.white,
+      color: theme.scaffoldBackgroundColor, // ✅ 배경색 테마
       width: double.infinity,
-      padding: EdgeInsets.symmetric(vertical: 10), // 좌우 패딩 제거
+      padding: const EdgeInsets.symmetric(vertical: 10),
       child: SafeArea(
-        left: false, right: false, top: true, bottom: false, // 좌우 인셋 제거
+        left: false, right: false, top: true, bottom: false,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -44,21 +46,20 @@ class _MainHeaderState extends State<MainHeader> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // 좌우 패딩 없이 화면 끝에 맞춤
                   Text(
                     '이 시간 우리 동네',
-                    style: TextStyle(
+                    style: theme.textTheme.titleMedium?.copyWith(
                       fontSize: 20,
                       fontWeight: FontWeight.w500,
-                      color: Colors.black,
+                      color: theme.colorScheme.onSurface, // ✅ 글자색 테마
                     ),
-                  ),SizedBox(width: 0), // 왼쪽 끝 붙임
+                  ),
                   LocationSelector(region: widget.region),
                 ],
               ),
             ),
             Padding(
-              padding: const EdgeInsets.only(left: 10.0, top: 12.0),
+              padding: const EdgeInsets.only(left: 10.0, top: 5.0),
               child: FilterBar(
                 selectedIndex: widget.currentFilterIndex,
                 onFilterSelected: widget.onFilterSelected,

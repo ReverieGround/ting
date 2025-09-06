@@ -116,7 +116,7 @@ class _PostPageState extends State<PostPage> {
                                     userId: c['user_id'],
                                     createdAt: c['created_at'],
                                     content: (c['content'] ?? '') as String,
-                                    dark: true,
+                                    // dark: true,
                                   );
                                 }),
                               ],

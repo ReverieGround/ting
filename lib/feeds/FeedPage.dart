@@ -38,10 +38,10 @@ class _FeedPageState extends State<FeedPage> with AutomaticKeepAliveClientMixin 
   void _calcInitialLimit() {
     final mq = MediaQuery.of(context);
     final size = mq.size;
-    final topPad = mq.padding.top; // 상태바 높이 반영
+    final topPad = mq.padding.top;
     final cellW = (size.width - _spacing * (_columns - 1)) / _columns;
     final cellH = cellW / _aspect;
-    final availableH = size.height - topPad - 120; // 여기서도 반영
+    final availableH = size.height - topPad - 120;
     final rows = (availableH / (cellH + _spacing)).ceil().clamp(1, 8);
     _initialLimit = rows * _columns + 6;
   }
@@ -91,15 +91,21 @@ class _FeedPageState extends State<FeedPage> with AutomaticKeepAliveClientMixin 
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final theme = Theme.of(context);
 
     final bool initialLoading = _feeds.isEmpty && _loading;
 
     final Widget listView = _feeds.isEmpty
         ? ListView(
             physics: const AlwaysScrollableScrollPhysics(),
-            children: const [
-              SizedBox(height: 160),
-              Center(child: Text('No posts')),
+            children: [
+              const SizedBox(height: 160),
+              Center(
+                child: Text(
+                  'No posts',
+                  style: theme.textTheme.bodyMedium,
+                ),
+              ),
             ],
           )
         : ListView.builder(
@@ -123,33 +129,42 @@ class _FeedPageState extends State<FeedPage> with AutomaticKeepAliveClientMixin 
           );
 
     return Scaffold(
-      backgroundColor: Colors.white,
-      // ▼ 전체를 SafeArea로 감싸서 상태바와 절대 안 겹치게
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         top: true, bottom: false, left: false, right: false,
         child: Stack(
           children: [
             if (initialLoading)
-              const Center(child: CircularProgressIndicator())
+              Center(
+                child: CircularProgressIndicator(
+                  color: theme.colorScheme.primary,
+                ),
+              )
             else
-              RefreshIndicator(onRefresh: _refresh, child: listView),
-
-            // ▼ SafeArea 내부이므로 더 이상 겹치지 않음
+              RefreshIndicator(
+                color: theme.colorScheme.primary,
+                onRefresh: _refresh,
+                child: listView,
+              ),
             Positioned(
               top: 8,
               right: 0,
               child: Container(
                 width: 55,
                 height: 45,
-                decoration: const BoxDecoration(
-                  color: Color.fromRGBO(199, 244, 100, 1),
-                  borderRadius: BorderRadius.only(
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary,
+                  borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(16),
                     bottomLeft: Radius.circular(16),
                   ),
                 ),
                 child: IconButton(
-                  icon: const Icon(Icons.camera_alt_rounded, color: Colors.white, size: 25),
+                  icon: Icon(
+                    Icons.camera_alt_rounded,
+                    color: theme.colorScheme.onPrimary,
+                    size: 25,
+                  ),
                   onPressed: () => _navigate(context),
                 ),
               ),

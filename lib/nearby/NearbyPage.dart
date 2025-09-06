@@ -34,7 +34,7 @@ class _NearbyPageState extends State<NearbyPage>
     _tabController = TabController(length: 3, vsync: this);
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) {
-        setState(() {}); // 헤더 갱신
+        setState(() {});
         _handleTabSelection();
       }
     });
@@ -69,30 +69,24 @@ class _NearbyPageState extends State<NearbyPage>
 
     try {
       if (tabIndex == 0) {
-        final fetchedFeeds = await _feedService.fetchRealtimeFeeds(
-          region: region,
-          limit: 20,
-        );
+        final fetchedFeeds = await _feedService.fetchRealtimeFeeds(region: region, limit: 20);
         if (mounted) setState(() => realtimeFeeds = fetchedFeeds);
       } else if (tabIndex == 1) {
-        final fetchedFeeds = await _feedService.fetchHotFeeds(
-          region: region,
-          date: DateTime.now(),
-          limit: 20,
-        );
+        final fetchedFeeds = await _feedService.fetchHotFeeds(region: region, date: DateTime.now(), limit: 20);
         if (mounted) setState(() => hotFeeds = fetchedFeeds);
       } else if (tabIndex == 2) {
-        final fetchedFeeds = await _feedService.fetchWackFeeds(
-          region: region,
-          limit: 20,
-        );
+        final fetchedFeeds = await _feedService.fetchWackFeeds(region: region, limit: 20);
         if (mounted) setState(() => wackFeeds = fetchedFeeds);
       }
     } catch (e) {
       debugPrint('피드 로딩 실패: $e');
       if (mounted) {
+        final theme = Theme.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('피드 로딩 중 오류가 발생했습니다: $e')),
+          SnackBar(
+            content: Text('피드 로딩 중 오류가 발생했습니다: $e', style: TextStyle(color: theme.colorScheme.onPrimary)),
+            backgroundColor: theme.colorScheme.error,
+          ),
         );
       }
     } finally {
@@ -108,8 +102,13 @@ class _NearbyPageState extends State<NearbyPage>
       }
     } catch (e) {
       if (mounted) {
+        final theme = Theme.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('지역 정보를 불러오는 데 실패했습니다.')),
+          SnackBar(
+            content: const Text('지역 정보를 불러오는 데 실패했습니다.'),
+            backgroundColor: theme.colorScheme.primary,
+            behavior: SnackBarBehavior.floating,
+          ),
         );
       }
     }
@@ -117,13 +116,15 @@ class _NearbyPageState extends State<NearbyPage>
 
   @override
   Widget build(BuildContext context) {
-    super.build(context); // keep-alive
+    super.build(context);
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(94),
         child: AppBar(
-          backgroundColor: Colors.white,
+          backgroundColor: theme.scaffoldBackgroundColor,
           elevation: 0,
           toolbarHeight: 100,
           automaticallyImplyLeading: false,
@@ -147,24 +148,25 @@ class _NearbyPageState extends State<NearbyPage>
         controller: _tabController,
         children: [
           isLoading && _tabController.index == 0
-              ? const Center(child: CircularProgressIndicator())
-              : _buildFeedGrid(realtimeFeeds),
+              ? Center(child: CircularProgressIndicator(color: theme.colorScheme.primary))
+              : _buildFeedGrid(realtimeFeeds, theme),
           isLoading && _tabController.index == 1
-              ? const Center(child: CircularProgressIndicator())
-              : _buildFeedGrid(hotFeeds),
+              ? Center(child: CircularProgressIndicator(color: theme.colorScheme.primary))
+              : _buildFeedGrid(hotFeeds, theme),
           isLoading && _tabController.index == 2
-              ? const Center(child: CircularProgressIndicator())
-              : _buildFeedGrid(wackFeeds),
+              ? Center(child: CircularProgressIndicator(color: theme.colorScheme.primary))
+              : _buildFeedGrid(wackFeeds, theme),
         ],
       ),
     );
   }
 
-  Widget _buildFeedGrid(List<FeedData> feeds) {
+  Widget _buildFeedGrid(List<FeedData> feeds, ThemeData theme) {
     if (feeds.isEmpty) {
-      return const Center(child: Text("게시물이 없습니다."));
+      return Center(child: Text("게시물이 없습니다.", style: theme.textTheme.bodyMedium));
     }
     return RefreshIndicator(
+      color: theme.colorScheme.primary,
       onRefresh: () => _loadFeeds(tabIndex: _tabController.index),
       child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
@@ -175,11 +177,13 @@ class _NearbyPageState extends State<NearbyPage>
               feeds: feeds,
               onDeleted: (postId) {
                 setState(() {
-                  // 중요: 여기의 feeds는 state에 있는 동일 리스트여야 함 (복사본 X)
                   feeds.removeWhere((f) => f.post.postId == postId);
                 });
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('삭제되었습니다.')),
+                  SnackBar(
+                    content: Text('삭제되었습니다.', style: TextStyle(color: theme.colorScheme.onPrimary)),
+                    backgroundColor: theme.colorScheme.primary,
+                  ),
                 );
               },
             ),
@@ -188,5 +192,4 @@ class _NearbyPageState extends State<NearbyPage>
       ),
     );
   }
-
 }

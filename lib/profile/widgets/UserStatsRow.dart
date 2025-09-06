@@ -17,7 +17,6 @@ class UserStatsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
       child: Row(
@@ -33,11 +32,14 @@ class UserStatsRow extends StatelessWidget {
   }
 
   Widget _buildStatItem(BuildContext context, String label, int count, {bool addComma = false}) {
-    
-    String displayCount = addComma ? count.toString().replaceAllMapped(
-      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-      (Match m) => '${m[1]},',
-    ) : count.toString();
+    final theme = Theme.of(context);
+
+    String displayCount = addComma
+        ? count.toString().replaceAllMapped(
+            RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+            (m) => '${m[1]},',
+          )
+        : count.toString();
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -45,18 +47,18 @@ class UserStatsRow extends StatelessWidget {
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: theme.textTheme.bodyMedium?.copyWith(
             fontSize: 14,
             fontWeight: FontWeight.w700,
-            color: Colors.black,
+            color: theme.colorScheme.onSurface,
           ),
         ),
         const SizedBox(width: 8),
         Text(
           displayCount,
-          style: const TextStyle(
+          style: theme.textTheme.bodySmall?.copyWith(
             fontSize: 12,
-            color: Colors.black54,
+            color: theme.colorScheme.onSurface.withOpacity(.6),
           ),
         ),
       ],

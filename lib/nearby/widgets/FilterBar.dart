@@ -1,5 +1,4 @@
 // widgets/FilterBar.dart
-
 import 'package:flutter/material.dart';
 
 class FilterBar extends StatelessWidget {
@@ -14,48 +13,38 @@ class FilterBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Container(
-      decoration: BoxDecoration(color: Colors.white),
-      child:Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        _buildFilterButton(
-          context,
-          icon: Image.asset('assets/thunder.png', width: 20, height: 20),
-          text: '실시간',
-          index: 0,
-          isSelected: selectedIndex == 0,
-          selectedColor: const Color.fromRGBO(225, 251, 169, 1),
-          unselectedColor: const Color.fromRGBO(240, 240, 240, 1),
-          selectedTextColor: Colors.black,
-          unselectedTextColor: Colors.black,
-        ),
-        const SizedBox(width: 8),
-        _buildFilterButton(
-          context,
-          icon: Image.asset('assets/fire.png', width: 20, height: 20),
-          text: 'Hot Feed',
-          index: 1,
-          isSelected: selectedIndex == 1,
-          selectedColor: const Color.fromRGBO(225, 251, 169, 1),
-          unselectedColor: const Color.fromRGBO(240, 240, 240, 1),
-          selectedTextColor: Colors.black,
-          unselectedTextColor: Colors.black,
-        ),
-        const SizedBox(width: 8),
-        _buildFilterButton(
-          context,
-          icon: Image.asset('assets/wack.png', width: 20, height: 20),
-          text: 'Wack Feed',
-          index: 2,
-          isSelected: selectedIndex == 2,
-          selectedColor: const Color.fromRGBO(225, 251, 169, 1),
-          unselectedColor: const Color.fromRGBO(240, 240, 240, 1),
-          selectedTextColor: Colors.black,
-          unselectedTextColor: Colors.black,
-        ),
-      ],
+      decoration: BoxDecoration(color: theme.scaffoldBackgroundColor),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          _buildFilterButton(
+            context,
+            icon: Image.asset('assets/thunder.png', width: 20, height: 20),
+            text: '실시간',
+            index: 0,
+            isSelected: selectedIndex == 0,
+          ),
+          const SizedBox(width: 8),
+          _buildFilterButton(
+            context,
+            icon: Image.asset('assets/fire.png', width: 20, height: 20),
+            text: 'Hot Feed',
+            index: 1,
+            isSelected: selectedIndex == 1,
+          ),
+          const SizedBox(width: 8),
+          _buildFilterButton(
+            context,
+            icon: Image.asset('assets/wack.png', width: 20, height: 20),
+            text: 'Wack Feed',
+            index: 2,
+            isSelected: selectedIndex == 2,
+          ),
+        ],
       ),
     );
   }
@@ -66,20 +55,22 @@ class FilterBar extends StatelessWidget {
     required String text,
     required int index,
     required bool isSelected,
-    required Color selectedColor,
-    required Color unselectedColor,
-    required Color selectedTextColor,
-    required Color unselectedTextColor,
   }) {
-    final bg = isSelected ? selectedColor : unselectedColor;
-    final fg = isSelected ? selectedTextColor : unselectedTextColor;
+    final theme = Theme.of(context);
+
+    final bg = isSelected
+        ? theme.colorScheme.primaryContainer
+        : theme.colorScheme.surfaceVariant;
+    final fg = isSelected
+        ? theme.colorScheme.onPrimaryContainer
+        : theme.colorScheme.onPrimaryContainer;
 
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: () => onFilterSelected(index),
         borderRadius: BorderRadius.circular(30),
-        child: AnimatedContainer( // 선택 시 폭 변화도 부드럽게
+        child: AnimatedContainer(
           duration: const Duration(milliseconds: 160),
           curve: Curves.easeOut,
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -88,7 +79,7 @@ class FilterBar extends StatelessWidget {
             borderRadius: BorderRadius.circular(30),
           ),
           child: Row(
-            mainAxisSize: MainAxisSize.min, // ← 내용만큼만
+            mainAxisSize: MainAxisSize.min,
             children: [
               SizedBox(width: 20, height: 20, child: icon),
               const SizedBox(width: 6),
@@ -109,5 +100,4 @@ class FilterBar extends StatelessWidget {
       ),
     );
   }
-
 }

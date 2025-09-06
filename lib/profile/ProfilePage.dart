@@ -137,17 +137,21 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     if (isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return Scaffold(
+        body: Center(child: CircularProgressIndicator(color: theme.colorScheme.primary)),
+      );
     }
     final me = FirebaseAuth.instance.currentUser?.uid;
     final isOwner = me != null && me == userId;
 
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppHeader(
         showBackButton: false,
-        backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+        backgroundColor: theme.scaffoldBackgroundColor,
         titleWidget: Container(
           margin: const EdgeInsets.only(top: 5),
           child: Row(
@@ -160,8 +164,22 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(profileInfo.userName, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
-                    Text(profileInfo.userTitle, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w400, color: Colors.black)),
+                    Text(
+                      profileInfo.userName,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+                    Text(
+                      profileInfo.userTitle,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                        color: theme.colorScheme.onSurface.withOpacity(.7),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -207,7 +225,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
               onUnpin: (feed) async {
                 if (!mounted) return;
                 try {
-                  await postService.unpinPost(feed.post.postId); // ✅ DB 해제
+                  await postService.unpinPost(feed.post.postId);
                   if (!mounted) return;
                   _safeSetState(() {
                     pinnedFeeds = pinnedFeeds.where((f) => f.post.postId != feed.post.postId).toList();
@@ -215,7 +233,10 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                 } catch (e) {
                   if (!mounted) return;
                   ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-                    const SnackBar(content: Text('해제 실패. 잠시 후 다시 시도해 주세요')),
+                    SnackBar(
+                      content: Text('해제 실패. 잠시 후 다시 시도해 주세요', style: TextStyle(color: theme.colorScheme.onError)),
+                      backgroundColor: theme.colorScheme.error,
+                    ),
                   );
                 }
               },
@@ -224,7 +245,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
             const SliverToBoxAdapter(child: SizedBox(height: 8)),
           SliverAppBar(
             pinned: true,
-            backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+            backgroundColor: theme.scaffoldBackgroundColor,
             toolbarHeight: 0,
             bottom: PreferredSize(
               preferredSize: const Size.fromHeight(36),
@@ -235,15 +256,15 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                 child: TabBar(
                   controller: _tabController,
                   isScrollable: false,
-                  labelColor: Colors.black,
-                  unselectedLabelColor: Colors.grey,
-                  indicatorColor: Colors.black,
+                  labelColor: theme.colorScheme.primary,
+                  unselectedLabelColor: theme.colorScheme.onSurface.withOpacity(.6),
+                  indicatorColor: theme.colorScheme.primary,
                   indicatorWeight: 2,
                   labelPadding: const EdgeInsets.symmetric(horizontal: 10),
                   indicatorPadding: EdgeInsets.zero,
-                  indicatorSize: TabBarIndicatorSize.tab, 
-                  indicator: const UnderlineTabIndicator( // ← 여백 없이 꽉 차게
-                    borderSide: BorderSide(width: 2, color: Colors.black),
+                  indicatorSize: TabBarIndicatorSize.tab,
+                  indicator: UnderlineTabIndicator(
+                    borderSide: BorderSide(width: 2, color: theme.colorScheme.primary),
                     insets: EdgeInsets.zero,
                   ),
                   dividerColor: Colors.transparent,
@@ -267,7 +288,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                     if (!mounted) return;
 
                     try {
-                      await postService.pinPost(feed.post.postId); // ✅ DB 기록
+                      await postService.pinPost(feed.post.postId);
 
                       if (!mounted) return;
                       final already = pinnedFeeds.any((f) => f.post.postId == feed.post.postId);
@@ -281,13 +302,19 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                       WidgetsBinding.instance.addPostFrameCallback((_) {
                         if (!mounted) return;
                         ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-                          const SnackBar(content: Text('상단에 고정했습니다')),
+                          SnackBar(
+                            content: Text('상단에 고정했습니다', style: TextStyle(color: theme.colorScheme.onPrimary)),
+                            backgroundColor: theme.colorScheme.primary,
+                          ),
                         );
                       });
                     } catch (e) {
                       if (!mounted) return;
                       ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-                        const SnackBar(content: Text('고정 실패. 잠시 후 다시 시도해 주세요')),
+                        SnackBar(
+                          content: Text('고정 실패. 잠시 후 다시 시도해 주세요', style: TextStyle(color: theme.colorScheme.onError)),
+                          backgroundColor: theme.colorScheme.error,
+                        ),
                       );
                     }
                   },

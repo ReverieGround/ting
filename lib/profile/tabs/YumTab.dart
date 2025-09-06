@@ -1,3 +1,4 @@
+// lib/pages/profile/tabs/YumTab.dart
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../models/FeedData.dart';
@@ -6,12 +7,12 @@ import '../../posts/PostPage.dart';
 class YumTab extends StatefulWidget {
   final List<FeedData> feeds;
   final bool isLoading;
-  final void Function(FeedData feed) onPin; // 추가
+  final void Function(FeedData feed) onPin;
 
   const YumTab({
     super.key,
     required this.feeds,
-    required this.onPin,           // 추가
+    required this.onPin,
     this.isLoading = false,
   });
 
@@ -40,17 +41,23 @@ class _YumTabState extends State<YumTab> {
     _visibleFeeds = widget.feeds.where((f) {
       final imgs = f.post.imageUrls;
       return imgs is List && imgs.isNotEmpty;
-    }).toList(); // 상위가 최신순으로 준다고 가정
+    }).toList();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (widget.isLoading) return _buildShimmerGrid();
+    final theme = Theme.of(context);
+
+    if (widget.isLoading) return _buildShimmerGrid(theme);
 
     if (_visibleFeeds.isEmpty) {
-      return const Center(
-        child: Text("No feeds",
-          style: TextStyle(color: Color.fromARGB(243,150,150,150), fontSize: 14)),
+      return Center(
+        child: Text(
+          "No feeds",
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.onSurface.withOpacity(.6),
+          ),
+        ),
       );
     }
 
@@ -67,7 +74,7 @@ class _YumTabState extends State<YumTab> {
 
         return GestureDetector(
           key: ValueKey('yum_${feed.post.postId}'),
-          onLongPress: () => _openPreview(feed),
+          onLongPress: () => _openPreview(feed, theme),
           onTap: () async {
             final deleted = await Navigator.push(
               context,
@@ -79,39 +86,44 @@ class _YumTabState extends State<YumTab> {
                 _visibleFeeds.removeWhere((f) => f.post.postId == feed.post.postId);
               });
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('삭제되었습니다.')),
+                SnackBar(
+                  content: Text('삭제되었습니다.', style: TextStyle(color: theme.colorScheme.onPrimary)),
+                  backgroundColor: theme.colorScheme.primary,
+                ),
               );
             }
           },
-          child: _buildImage(url),
+          child: _buildImage(context, url),
         );
       },
     );
   }
 
-  Widget _buildImage(String url) {
+  Widget _buildImage(BuildContext context, String url) {
+    final theme = Theme.of(context);
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
       child: Image.network(
         url,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => Container(color: Colors.grey),
+        errorBuilder: (_, __, ___) => Container(color: theme.colorScheme.surfaceVariant),
       ),
     );
   }
 
-  Future<void> _openPreview(FeedData feed) async {
-    if (!mounted) return; // 추가
+  Future<void> _openPreview(FeedData feed, ThemeData theme) async {
+    if (!mounted) return;
     final List imgs = feed.post.imageUrls as List;
     final url = imgs.first as String;
+
     await showDialog(
       context: context,
       barrierDismissible: true,
-      barrierColor: Colors.black.withOpacity(.35),
+      barrierColor: theme.colorScheme.scrim.withOpacity(.35),
       builder: (ctx) {
         return Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 400, maxHeight: 400+50,),
+            constraints: const BoxConstraints(maxWidth: 400, maxHeight: 450),
             child: Material(
               clipBehavior: Clip.antiAlias,
               color: Colors.transparent,
@@ -127,14 +139,12 @@ class _YumTabState extends State<YumTab> {
                         child: Image.network(
                           url,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Container(color: Colors.grey),
+                          errorBuilder: (_, __, ___) => Container(color: theme.colorScheme.surfaceVariant),
                         ),
                       ),
                     ),
-                    SizedBox(height: 5),
+                    const SizedBox(height: 5),
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         FilledButton.icon(
                           style: FilledButton.styleFrom(
@@ -143,8 +153,8 @@ class _YumTabState extends State<YumTab> {
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             visualDensity: const VisualDensity(horizontal: -2, vertical: -2),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                            backgroundColor: const Color.fromARGB(255, 240, 240, 240),
-                            foregroundColor: Colors.black,
+                            backgroundColor: theme.colorScheme.secondaryContainer,
+                            foregroundColor: theme.colorScheme.onSecondaryContainer,
                           ),
                           onPressed: () {
                             Navigator.of(ctx).pop();
@@ -154,7 +164,7 @@ class _YumTabState extends State<YumTab> {
                               widget.onPin(feed);
                             });
                           },
-                          icon: const Icon(Icons.push_pin_outlined, size: 16, color: Colors.black), // 아이콘도 축소
+                          icon: Icon(Icons.push_pin_outlined, size: 16, color: theme.colorScheme.onSecondaryContainer),
                           label: const Text('상단 고정하기', style: TextStyle(fontSize: 13)),
                         ),
                       ],
@@ -167,13 +177,13 @@ class _YumTabState extends State<YumTab> {
         );
       },
     );
-    if (!mounted) return; // 추가
+    if (!mounted) return;
   }
 
-  Widget _buildShimmerGrid() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final base = isDark ? const Color(0xFF3A3A3A) : const Color(0xFFD0D0D0);
-    final highlight = isDark ? const Color(0xFF4C4C4C) : const Color(0xFFF1F1F1);
+  Widget _buildShimmerGrid(ThemeData theme) {
+    final isDark = theme.brightness == Brightness.dark;
+    final base = theme.colorScheme.surfaceVariant.withOpacity(isDark ? .45 : .6);
+    final highlight = theme.colorScheme.surface.withOpacity(isDark ? .35 : .9);
 
     return GridView.builder(
       padding: const EdgeInsets.all(8),
