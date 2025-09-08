@@ -1,6 +1,4 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
-import 'login/LoginPage.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -10,17 +8,7 @@ class SplashPage extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashPage> with SingleTickerProviderStateMixin {
-  @override
-  void initState() {
-    super.initState();
-    Future.delayed(const Duration(milliseconds: 500), () {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const LoginPage()),
-      );
-    });
-  }
-
+  
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
