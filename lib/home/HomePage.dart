@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import '../feeds/FeedPage.dart';
 import '../profile/ProfilePage.dart';
-import '../nearby/NearbyPage.dart';
-import 'dart:ui';
+import '../create/CreatePostPage.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -12,12 +11,18 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  // 0: 커뮤니티(피드), 1: FAB 액션, 2: 프로필
   int _selectedIndex = 0;
 
+  // 사이즈 튜닝 포인트 👇
+  static const double kNavBarHeight = 50.0; // 더 낮은 바
+  static const double kFabSize = 78.0;      // 더 큰 원형 FAB (ex. 64~72 권장)
+  static const double kFabSpacerMargin = 12.0; // FAB 좌우 여유
+
   final List<Widget?> _pages = [
-    const FeedPage(key: PageStorageKey('feed')),
-    null,
-    null,
+    const FeedPage(key: PageStorageKey('community')),
+    null, // FAB 액션
+    null, // Profile (lazy)
   ];
 
   final _bucket = PageStorageBucket();
@@ -25,9 +30,6 @@ class _HomePageState extends State<HomePage> {
   void _ensurePage(int index) {
     if (_pages[index] != null) return;
     switch (index) {
-      case 1:
-        _pages[1] = const NearbyPage(key: PageStorageKey('nearby'));
-        break;
       case 2:
         _pages[2] = const ProfilePage(key: PageStorageKey('profile'));
         break;
@@ -36,108 +38,129 @@ class _HomePageState extends State<HomePage> {
 
   void _onItemTapped(int index) {
     if (!mounted) return;
+    if (index == 1) { _openCook(); return; } // FAB 위치는 탭 이동 X
     setState(() {
       _selectedIndex = index;
       _ensurePage(index);
     });
   }
 
+  Future<void> _openCook() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const CreatePostPage()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final mediaQuerySize = MediaQuery.of(context).size;
-    final double bottomMargin = 10.0 + MediaQuery.of(context).padding.bottom;
-    const double horizontalPadding = 20;
-    final double navigatorWidth = mediaQuerySize.width - 2 * horizontalPadding;
-    const double navigatorHeight = 50.0;
 
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor, 
-      body: Stack(
-        children: [
-          Positioned.fill(
-            child: PageStorage(
-              bucket: _bucket,
-              child: IndexedStack(
-                index: _selectedIndex,
-                children: List.generate(3, (i) => _pages[i] ?? const SizedBox.shrink()),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: bottomMargin,
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: horizontalPadding),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(60),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 3.0, sigmaY: 3.0),
-                    child: Container(
-                      width: navigatorWidth,
-                      height: navigatorHeight,
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.surface.withOpacity(0.4), 
-                        borderRadius: BorderRadius.circular(60),
-                        border: Border.all(
-                          color: theme.dividerColor, 
-                          width: 1.0,
-                        ),
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 12),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          _buildCustomNavItem(context, 'home', 0),
-                          _buildCustomNavItem(context, 'nearby', 1),
-                          _buildCustomNavItem(context, 'profile', 2),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCustomNavItem(BuildContext context, String label, int index) {
-    final theme = Theme.of(context);
-    final bool isSelected = _selectedIndex == index;
-
-    
-    final Color iconColor = isSelected 
-        ? theme.colorScheme.primary
-        : theme.colorScheme.onSurface;
-
-    return InkWell(
-      onTap: () => _onItemTapped(index),
-      borderRadius: BorderRadius.circular(30),
-      child: Padding(
-        padding: const EdgeInsets.all(0.0),
-        child: Icon( // PNG 대신 Theme 색상을 입힌 Icon 사용 권장
-          _mapLabelToIcon(label),
-          color: iconColor,
-          size: 24,
+      backgroundColor: theme.scaffoldBackgroundColor,
+      body: PageStorage(
+        bucket: _bucket,
+        child: IndexedStack(
+          index: _selectedIndex,
+          children: List.generate(3, (i) => _pages[i] ?? const SizedBox.shrink()),
         ),
       ),
+
+      // FAB: 더 크게 + 완전 동그라미
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButton: SizedBox(
+        width: kFabSize,
+        height: kFabSize,
+        child: FloatingActionButton(
+          backgroundColor: theme.colorScheme.onSurface,
+          onPressed: _openCook,
+          tooltip: '요리하기',
+          elevation: 5,
+          shape: CircleBorder(
+            side: BorderSide(
+              color:theme.colorScheme.surface,
+              width: 5.0,
+             )
+          ),
+          child: Icon(
+            Icons.restaurant_menu_rounded, size: 40,
+            color: theme.colorScheme.surface,
+          ),
+        ),
+      ),
+
+      // 낮은 BottomAppBar (적응형 배치)
+      bottomNavigationBar: BottomAppBar(
+        // 노치 없음(동그란 FAB가 위에 살짝 겹치는 형태)
+        height: kNavBarHeight,
+        elevation: 6,
+        color: theme.colorScheme.surface.withOpacity(0.9),
+        child: SafeArea(
+          top: false,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final double w = constraints.maxWidth;
+
+              // 화면 너비 기반 동적 여백
+              final double sidePadding = (w * 0.1).clamp(12.0, 28.0); // 좌우 패딩
+              final double centerMargin = (w * 0.02).clamp(8.0, 16.0);  // FAB 좌우 여유
+              final double spacerWidth = kFabSize + centerMargin * 2;   // FAB 지름 + 여유
+
+              return Padding(
+                padding: EdgeInsets.symmetric(horizontal: sidePadding),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _NavIconButton(
+                      icon: Icons.supervisor_account_rounded,
+                      label: '커뮤니티',
+                      selected: _selectedIndex == 0,
+                      onTap: () => _onItemTapped(0),
+                    ),
+
+                    // 가운데 FAB 영역 확보 (화면 크기에 따라 자동 조절)
+                    SizedBox(width: spacerWidth),
+
+                    _NavIconButton(
+                      icon: Icons.person_rounded,
+                      label: '프로필',
+                      selected: _selectedIndex == 2,
+                      onTap: () => _onItemTapped(2),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+
+
     );
   }
+}
 
-  
-  IconData _mapLabelToIcon(String label) {
-    switch (label) {
-      case 'home':
-        return Icons.home_rounded;
-      case 'nearby':
-        return Icons.location_on_rounded;
-      case 'profile':
-        return Icons.person_rounded;
-      default:
-        return Icons.circle;
-    }
+class _NavIconButton extends StatelessWidget {
+  const _NavIconButton({
+    required this.icon,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final Color color =
+        selected ? theme.colorScheme.primary : theme.colorScheme.onSurface;
+
+    return InkWell(
+      onTap: onTap,
+      child: Icon(icon, color: color, size: 32),
+    );
   }
 }
