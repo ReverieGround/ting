@@ -121,17 +121,16 @@ class _LikeWidgetState extends State<FeedLikeIcon> {
   Widget build(BuildContext context) {
     final String blackIconPath = 'assets/fork.png';
     final String pinkIconPath = 'assets/fork_color.png';
-
+    final theme = Theme.of(context);
     return GestureDetector(
       onTap: _isToggling ? null : _toggleLike,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Image.asset(
-            _currentHasLiked ? pinkIconPath : blackIconPath,
-            width: widget.iconSize,
-            height: widget.iconSize,
+          Icon(
+            Icons.cookie_outlined, 
+            size: widget.iconSize,
             color: _currentHasLiked ? null : widget.fontColor,
           ),
           const SizedBox(width: 6),

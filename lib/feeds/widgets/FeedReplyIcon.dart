@@ -67,10 +67,9 @@ class _CommentWidgetState extends State<FeedReplyIcon> {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Image.asset(
-            iconPath,
-            width: widget.iconSize,
-            height: widget.iconSize,
+          Icon(
+            Icons.local_fire_department, 
+            size: widget.iconSize,
             color: widget.fontColor,
           ),
           const SizedBox(width: 6),
