@@ -146,29 +146,6 @@ class _FeedPageState extends State<FeedPage> with AutomaticKeepAliveClientMixin 
                 onRefresh: _refresh,
                 child: listView,
               ),
-            Positioned(
-              top: 8,
-              right: 0,
-              child: Container(
-                width: 55,
-                height: 45,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primary,
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(16),
-                    bottomLeft: Radius.circular(16),
-                  ),
-                ),
-                child: IconButton(
-                  icon: Icon(
-                    Icons.camera_alt_rounded,
-                    color: theme.colorScheme.onPrimary,
-                    size: 25,
-                  ),
-                  onPressed: () => _navigate(context),
-                ),
-              ),
-            ),
           ],
         ),
       ),
