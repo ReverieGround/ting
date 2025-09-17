@@ -58,7 +58,7 @@ class _CommentWidgetState extends State<FeedReplyIcon> {
 
   @override
   Widget build(BuildContext context) {
-    final String iconPath = 'assets/comment.png';
+    final String iconPath = 'assets/spoon_4.png';
 
     return GestureDetector(
       // onTap: _isPostingComment ? null : () => _showCommentInputBottomSheet(context),
@@ -67,12 +67,17 @@ class _CommentWidgetState extends State<FeedReplyIcon> {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Icon(
-            Icons.local_fire_department, 
-            size: widget.iconSize,
-            color: widget.fontColor,
+          Image.asset(
+            iconPath,
+            width: widget.iconSize,
+            height: widget.iconSize,
           ),
-          const SizedBox(width: 6),
+          // Icon(
+          //   Icons.local_fire_department, 
+          //   size: widget.iconSize,
+          //   color: widget.fontColor,
+          // ),
+          const SizedBox(width: 3),
           Text(
             formatNumber(_currentCommentCount),
             textAlign: TextAlign.center,

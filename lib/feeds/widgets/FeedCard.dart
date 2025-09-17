@@ -6,6 +6,7 @@ import 'FeedImages.dart';
 import 'FeedContent.dart';
 import '../../posts/PostPage.dart';
 import 'FeedLikeIcon.dart';
+import 'FeedLikeIcon2.dart';
 import 'FeedReplyIcon.dart';
 import '../../models/PostData.dart';
 import '../../models/FeedData.dart';
@@ -118,32 +119,49 @@ class _FeedCardState extends State<FeedCard> {
               onEdit: () => _openEditSheet(context),
             ),
           if (imageUrls.isNotEmpty)
-            GestureDetector(
-              onTap: () async {
-                if (!blockNavPost) {
-                  final deleted = await Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => PostPage(feed: feed)),
-                  );
-                  if (deleted == true) {
-                    if (widget.onDeleted != null) {
-                      widget.onDeleted!.call();
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            '삭제되었습니다.',
-                            style: TextStyle(color: theme.colorScheme.onPrimary),
+            Stack(
+              children: [
+                GestureDetector(
+                onTap: () async {
+                  if (!blockNavPost) {
+                    final deleted = await Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => PostPage(feed: feed)),
+                    );
+                    if (deleted == true) {
+                      if (widget.onDeleted != null) {
+                        widget.onDeleted!.call();
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              '삭제되었습니다.',
+                              style: TextStyle(color: theme.colorScheme.onPrimary),
+                            ),
+                            backgroundColor: theme.colorScheme.primary,
                           ),
-                          backgroundColor: theme.colorScheme.primary,
-                        ),
-                      );
+                        );
+                      }
                     }
                   }
-                }
-              },
-              child: _buildAutoImageArea(context, imageUrls, currCategory, currValue),
-            ),
+                },
+                child: _buildAutoImageArea(context, imageUrls, currCategory, currValue),
+              ),
+              Positioned(
+                bottom: 10,
+                right: 10,
+                child:  FeedLikeIcon2(
+                  postId: feed.post.postId,
+                  userId: feed.user.userId,
+                  initialLikeCount: feed.numLikes,
+                  hasLiked: feed.isLikedByUser,
+                  onToggleCompleted: null,
+                  fontSize: iconSize - 3,
+                  iconSize: iconSize,
+                  fontColor: effectiveFont,
+                ),
+              )
+              ]),
           if (showIcons)
             Padding(
               padding: EdgeInsets.symmetric(vertical: iconVGap, horizontal: iconHGap),
