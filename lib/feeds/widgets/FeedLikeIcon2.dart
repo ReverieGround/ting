@@ -1,4 +1,4 @@
-// feeds/widgets/FeedLikeIcon.dart 
+// feeds/widgets/FeedLikeIcon2.dart 
 import 'package:flutter/material.dart';
 import '../../services/PostService.dart'; 
 
@@ -15,7 +15,7 @@ String formatNumber(int count) {
   }
 }
 
-class FeedLikeIcon extends StatefulWidget {
+class FeedLikeIcon2 extends StatefulWidget {
   final String postId;
   final String userId;
   final int initialLikeCount;
@@ -25,7 +25,7 @@ class FeedLikeIcon extends StatefulWidget {
   final double iconSize;
   final Color fontColor;
 
-  const FeedLikeIcon({
+  const FeedLikeIcon2({
     super.key,
     required this.postId,
     required this.userId,
@@ -38,10 +38,10 @@ class FeedLikeIcon extends StatefulWidget {
   });
 
   @override
-  State<FeedLikeIcon> createState() => _LikeWidgetState();
+  State<FeedLikeIcon2> createState() => _LikeWidgetState();
 }
 
-class _LikeWidgetState extends State<FeedLikeIcon> {
+class _LikeWidgetState extends State<FeedLikeIcon2> {
   late int _currentLikeCount;
   late bool _currentHasLiked; 
   bool _isToggling = false;
@@ -57,7 +57,7 @@ class _LikeWidgetState extends State<FeedLikeIcon> {
   }
 
   @override
-  void didUpdateWidget(covariant FeedLikeIcon oldWidget) {
+  void didUpdateWidget(covariant FeedLikeIcon2 oldWidget) {
     super.didUpdateWidget(oldWidget);
     // 좋아요 수와 좋아요 여부가 외부에서 변경될 때만 업데이트
     if (widget.initialLikeCount != oldWidget.initialLikeCount) {
@@ -119,42 +119,23 @@ class _LikeWidgetState extends State<FeedLikeIcon> {
 
   @override
   Widget build(BuildContext context) {
-    final String blackIconPath = 'assets/fork.png';
-    final String pinkIconPath = 'assets/fork_color.png';
-    final String iconPath = 'assets/bow_2.png';
-    final theme = Theme.of(context);
     return GestureDetector(
       onTap: _isToggling ? null : _toggleLike,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-
-          Image.asset(
-            iconPath,
-            width: widget.iconSize,
-            height: widget.iconSize,
-            color: widget.fontColor,
-          ),
-          // Icon(
-          //   Icons.cookie_outlined, 
-          //   size: widget.iconSize,
-          //   color: _currentHasLiked ? null : widget.fontColor,
-          // ),
-          const SizedBox(width: 6),
-          Text(
-            formatNumber(_currentLikeCount),
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: widget.fontSize,
-              color: widget.fontColor,
-            ),
-            textHeightBehavior: const TextHeightBehavior(
-              applyHeightToFirstAscent: false,
-              applyHeightToLastDescent: false,
-            ),
-          ),
-        ],
+      child: Container(
+        padding: EdgeInsets.all(3),
+        decoration: BoxDecoration(
+          color: Color.fromARGB(100, 255, 255, 255),
+          shape: BoxShape.circle,
+          // border: Border.all(
+          //   color: _currentHasLiked ? Colors.redAccent : widget.fontColor,
+          //   width: 1
+          // ), // ✅ 검은색 테두리 추가
+        ),
+        child: Icon(
+          Icons.favorite, 
+          size: widget.iconSize,
+          color: _currentHasLiked ? Colors.redAccent : widget.fontColor,
+        ),
       ),
     );
   }
