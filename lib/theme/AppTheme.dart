@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 
 // 🎨 테마에 사용할 기본 색상 정의
 const kBgLight = Color(0xFF0F1115);
-const kPrimary = Color(0xFFF39C12);
+// const kPrimary = Color(0xFFF39C12);
+const kPrimary = Color(0xFFEAECEF);
 const kFontLight = Color(0xFFEAECEF);
 // kPrimary = Color(0xFFE74C3C)
 // kPrimary = Color(0xFFF39C12)

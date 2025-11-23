@@ -1,5 +1,5 @@
-
 class ProfileInfo {
+  final String userId; 
   final String userName;
   final String location;
   final int recipeCount;
@@ -12,6 +12,7 @@ class ProfileInfo {
   final String userTitle;
 
   ProfileInfo({
+    required this.userId,            
     required this.userName,
     required this.location,
     required this.statusMessage,
@@ -26,6 +27,7 @@ class ProfileInfo {
 
   factory ProfileInfo.empty() {
     return ProfileInfo(
+      userId: '',                    
       userName: '',
       userTitle: '',
       profileImage: '',
@@ -39,9 +41,9 @@ class ProfileInfo {
     );
   }
 
-  // JSON 데이터 (Map<String, dynamic>)로부터 ProfileInfo 객체를 생성하는 팩토리 생성자
   factory ProfileInfo.fromJson(Map<String, dynamic> json) {
     return ProfileInfo(
+      userId: json['user_id'] ?? '',               
       userName: json['user_name'] ?? '',
       location: json['location'] ?? '서울시',
       statusMessage: json['status_message'] ?? '',
@@ -55,8 +57,8 @@ class ProfileInfo {
     );
   }
 
-  // 기존 ProfileInfo 객체에서 특정 필드만 변경하여 새로운 ProfileInfo 객체를 반환하는 copyWith 메서드
   ProfileInfo copyWith({
+    String? userId,
     String? userName,
     String? location,
     String? statusMessage,
@@ -69,6 +71,7 @@ class ProfileInfo {
     String? userTitle,
   }) {
     return ProfileInfo(
+      userId: userId ?? this.userId,               
       userName: userName ?? this.userName,
       location: location ?? this.location,
       statusMessage: statusMessage ?? this.statusMessage,
@@ -82,9 +85,9 @@ class ProfileInfo {
     );
   }
 
-  // 선택 사항: ProfileInfo 객체를 JSON (Map<String, dynamic>)으로 변환하는 메서드
   Map<String, dynamic> toJson() {
     return {
+      'user_id': userId,                          
       'user_name': userName,
       'location': location,
       'status_message': statusMessage,
@@ -97,5 +100,4 @@ class ProfileInfo {
       'user_title': userTitle,
     };
   }
-  
 }

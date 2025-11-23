@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'dart:developer';
 
 // feeds
-import '../../feeds/widgets/FeedCard.dart';
+import '../feeds/widgets/FeedCard.dart';
 import '../../models/FeedData.dart';
 
 // 기존 comments 위젯
@@ -128,34 +128,11 @@ class _PostPageState extends State<PostPage> {
                   ),
                 ),
               ),
-              // _buildAppNav(),
               Positioned(
                 left: 0, right: 0, bottom: 0,
                 child: _buildCommentInputPanel(),
               ),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAppNav() {
-    return Positioned(
-      top: 8,
-      left: 12,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(30),
-          onTap: () => Navigator.pop(context),
-          child: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2), // 반투명 밝은 톤
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.arrow_back, color: Colors.white, size: 26),
           ),
         ),
       ),
@@ -193,9 +170,7 @@ class _PostPageState extends State<PostPage> {
 
     return SafeArea(
       top: false,
-      child: Container(
-        width: double.infinity,
-        color: const Color.fromARGB(255, 15, 15, 15),
+      child: Padding(
         padding: EdgeInsets.only(
           left: 12,
           right: 12,
@@ -205,51 +180,71 @@ class _PostPageState extends State<PostPage> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Image.asset('assets/fork_white.png', height: 32, width: 32),
-            const SizedBox(width: 8),
             Expanded(
               child: ValueListenableBuilder<TextEditingValue>(
                 valueListenable: _commentController,
                 builder: (context, value, _) {
                   final canSend = value.text.trim().isNotEmpty && !_isPosting;
-                  return TextField(
-                    controller: _commentController,
-                    cursorColor: Colors.white,
-                    style: const TextStyle(color: Colors.white),
-                    textInputAction: TextInputAction.send,
-                    onSubmitted: (_) => _handleSubmit(),
-                    textAlignVertical: TextAlignVertical.center,
-                    decoration: InputDecoration(
-                      constraints: const BoxConstraints(minHeight: kCommentBarHeight),
-                      filled: true,
-                      fillColor: Colors.grey[900],
-                      hintText: "댓글을 작성해 보세요",
-                      hintStyle: const TextStyle(color: Colors.white70),
-                      contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(25),
-                        borderSide: const BorderSide(width: 1.0, color: Colors.grey),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(25),
-                        borderSide: const BorderSide(width: 1.0, color: Colors.white),
-                      ),
-                      suffixIcon: _isPosting
-                          ? const Padding(
-                              padding: EdgeInsets.all(10),
-                              child: SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                  strokeWidth: 2,
+                  return ClipRRect(
+                    borderRadius: BorderRadius.circular(50),
+                    child: TextField(
+                      controller: _commentController,
+                      cursorColor: Colors.white,
+                      style: const TextStyle(color: Colors.white),
+                      textInputAction: TextInputAction.send,
+                      onSubmitted: (_) => _handleSubmit(),
+                      textAlignVertical: TextAlignVertical.center,
+                      decoration: InputDecoration(
+                        constraints: const BoxConstraints(
+                          minHeight: kCommentBarHeight,
+                        ),
+                        filled: true,
+                        fillColor: Colors.grey[900],
+                        hintText: "댓글을 작성해 보세요",
+                        hintStyle: const TextStyle(color: Colors.white70),
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 12,
+                          horizontal: 16,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(50),
+                          borderSide: const BorderSide(
+                            width: 1.0,
+                            color: Colors.grey,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(50),
+                          borderSide: const BorderSide(
+                            width: 1.0,
+                            color: Colors.white,
+                          ),
+                        ),
+                        suffixIcon: _isPosting
+                            ? const Padding(
+                                padding: EdgeInsets.all(10),
+                                child: SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    valueColor:
+                                        AlwaysStoppedAnimation<Color>(Colors.white),
+                                    strokeWidth: 2,
+                                  ),
+                                ),
+                              )
+                            : IconButton(
+                                onPressed: canSend ? _handleSubmit : null,
+                                icon: Image.asset(
+                                  'assets/fork.png',
+                                  height: 24,
+                                  width: 24,
+                                  color: canSend
+                                      ? Colors.white
+                                      : Colors.white54,
                                 ),
                               ),
-                            )
-                          : IconButton(
-                              onPressed: canSend ? _handleSubmit : null,
-                              icon: const Icon(Icons.send, color: Colors.white),
-                            ),
+                      ),
                     ),
                   );
                 },
@@ -260,5 +255,6 @@ class _PostPageState extends State<PostPage> {
       ),
     );
   }
+
 
 }

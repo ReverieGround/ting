@@ -1,8 +1,7 @@
-// feeds/widgets/FeedLikeIcon2.dart 
+// feeds/widgets/CookingIcon.dart 
 import 'package:flutter/material.dart';
 import '../../services/PostService.dart'; 
 
-// 숫자 단위 축약 함수 (변동 없음)
 String formatNumber(int count) {
   if (count < 1000) {
     return count.toString();
@@ -15,7 +14,7 @@ String formatNumber(int count) {
   }
 }
 
-class FeedLikeIcon2 extends StatefulWidget {
+class CookingIcon extends StatefulWidget {
   final String postId;
   final String userId;
   final int initialLikeCount;
@@ -25,7 +24,7 @@ class FeedLikeIcon2 extends StatefulWidget {
   final double iconSize;
   final Color fontColor;
 
-  const FeedLikeIcon2({
+  const CookingIcon({
     super.key,
     required this.postId,
     required this.userId,
@@ -38,10 +37,10 @@ class FeedLikeIcon2 extends StatefulWidget {
   });
 
   @override
-  State<FeedLikeIcon2> createState() => _LikeWidgetState();
+  State<CookingIcon> createState() => _LikeWidgetState();
 }
 
-class _LikeWidgetState extends State<FeedLikeIcon2> {
+class _LikeWidgetState extends State<CookingIcon> {
   late int _currentLikeCount;
   late bool _currentHasLiked; 
   bool _isToggling = false;
@@ -57,7 +56,7 @@ class _LikeWidgetState extends State<FeedLikeIcon2> {
   }
 
   @override
-  void didUpdateWidget(covariant FeedLikeIcon2 oldWidget) {
+  void didUpdateWidget(covariant CookingIcon oldWidget) {
     super.didUpdateWidget(oldWidget);
     // 좋아요 수와 좋아요 여부가 외부에서 변경될 때만 업데이트
     if (widget.initialLikeCount != oldWidget.initialLikeCount) {
@@ -119,23 +118,36 @@ class _LikeWidgetState extends State<FeedLikeIcon2> {
 
   @override
   Widget build(BuildContext context) {
+    final String iconPath = 'assets/chef.png';
     return GestureDetector(
       onTap: _isToggling ? null : _toggleLike,
-      child: Container(
-        padding: EdgeInsets.all(3),
-        decoration: BoxDecoration(
-          color: Color.fromARGB(100, 255, 255, 255),
-          shape: BoxShape.circle,
-          // border: Border.all(
-          //   color: _currentHasLiked ? Colors.redAccent : widget.fontColor,
-          //   width: 1
-          // ), // ✅ 검은색 테두리 추가
-        ),
-        child: Icon(
-          Icons.favorite, 
-          size: widget.iconSize,
-          color: _currentHasLiked ? Colors.redAccent : widget.fontColor,
-        ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(2.0),
+            child: Image.asset(
+              iconPath,
+              width: widget.iconSize,
+              height: widget.iconSize,
+              color: widget.fontColor,
+            ),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            formatNumber(_currentLikeCount),
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: widget.fontSize,
+              color: widget.fontColor,
+            ),
+            textHeightBehavior: const TextHeightBehavior(
+              applyHeightToFirstAscent: false,
+              applyHeightToLastDescent: false,
+            ),
+          ),
+        ],
       ),
     );
   }

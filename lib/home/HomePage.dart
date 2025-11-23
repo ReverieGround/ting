@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../feeds/FeedPage.dart';
 import '../profile/ProfilePage.dart';
 import '../create/CreatePostPage.dart';
+import '../recipe/RecipeListPage.dart'; 
+import 'package:flutter_svg/flutter_svg.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -47,7 +49,8 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _openCook() async {
     await Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const CreatePostPage()),
+      // MaterialPageRoute(builder: (_) => const CreatePostPage()),
+      MaterialPageRoute(builder: (_) => const RecipeListPage()),
     );
   }
 
@@ -57,15 +60,73 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      body: PageStorage(
-        bucket: _bucket,
-        child: IndexedStack(
-          index: _selectedIndex,
-          children: List.generate(3, (i) => _pages[i] ?? const SizedBox.shrink()),
-        ),
+      extendBody: true, // ✅ body를 FAB/Bottom 위까지 확장시켜줌
+      body: Stack(
+        children: [
+          PageStorage(
+            bucket: _bucket,
+            child: IndexedStack(
+              index: _selectedIndex,
+              children: List.generate(3, (i) => _pages[i] ?? const SizedBox.shrink()),
+            ),
+          ),
+
+          // ✅ 반투명 네비게이션바 오버레이
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Container(
+              height: kNavBarHeight + MediaQuery.of(context).padding.bottom,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface.withOpacity(0.5),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 10,
+                    offset: const Offset(0, -2),
+                  ),
+                ],
+              ),
+              child: SafeArea(
+                top: false,
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final double w = constraints.maxWidth;
+                    final double sidePadding = (w * 0.1).clamp(12.0, 28.0);
+                    final double centerMargin = (w * 0.02).clamp(8.0, 16.0);
+                    final double spacerWidth = kFabSize + centerMargin * 2;
+
+                    return Padding(
+                      padding: EdgeInsets.symmetric(horizontal: sidePadding),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          _NavIconButton(
+                            assetPath: 'assets/users-round.svg',
+                            label: '커뮤니티',
+                            selected: _selectedIndex == 0,
+                            onTap: () => _onItemTapped(0),
+                          ),
+                          SizedBox(width: spacerWidth),
+                          _NavIconButton(
+                            assetPath: 'assets/user-round-pen.svg',
+                            label: '프로필',
+                            selected: _selectedIndex == 2,
+                            onTap: () => _onItemTapped(2),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
 
-      // FAB: 더 크게 + 완전 동그라미
+      // ✅ FloatingActionButton 유지
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: SizedBox(
         width: kFabSize,
@@ -77,77 +138,31 @@ class _HomePageState extends State<HomePage> {
           elevation: 5,
           shape: CircleBorder(
             side: BorderSide(
-              color:theme.colorScheme.surface,
+              color: theme.colorScheme.surface,
               width: 5.0,
-             )
+            ),
           ),
           child: Icon(
-            Icons.restaurant_menu_rounded, size: 40,
+            Icons.restaurant_menu_rounded,
+            size: 40,
             color: theme.colorScheme.surface,
           ),
         ),
       ),
-
-      // 낮은 BottomAppBar (적응형 배치)
-      bottomNavigationBar: BottomAppBar(
-        // 노치 없음(동그란 FAB가 위에 살짝 겹치는 형태)
-        height: kNavBarHeight,
-        elevation: 6,
-        color: theme.colorScheme.surface.withOpacity(0.9),
-        child: SafeArea(
-          top: false,
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final double w = constraints.maxWidth;
-
-              // 화면 너비 기반 동적 여백
-              final double sidePadding = (w * 0.1).clamp(12.0, 28.0); // 좌우 패딩
-              final double centerMargin = (w * 0.02).clamp(8.0, 16.0);  // FAB 좌우 여유
-              final double spacerWidth = kFabSize + centerMargin * 2;   // FAB 지름 + 여유
-
-              return Padding(
-                padding: EdgeInsets.symmetric(horizontal: sidePadding),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _NavIconButton(
-                      icon: Icons.supervisor_account_rounded,
-                      label: '커뮤니티',
-                      selected: _selectedIndex == 0,
-                      onTap: () => _onItemTapped(0),
-                    ),
-
-                    // 가운데 FAB 영역 확보 (화면 크기에 따라 자동 조절)
-                    SizedBox(width: spacerWidth),
-
-                    _NavIconButton(
-                      icon: Icons.person_rounded,
-                      label: '프로필',
-                      selected: _selectedIndex == 2,
-                      onTap: () => _onItemTapped(2),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-        ),
-      ),
-
-
     );
   }
+
 }
 
 class _NavIconButton extends StatelessWidget {
   const _NavIconButton({
-    required this.icon,
+    required this.assetPath,
     required this.label,
     required this.selected,
     required this.onTap,
   });
 
-  final IconData icon;
+  final String assetPath;
   final String label;
   final bool selected;
   final VoidCallback onTap;
@@ -155,12 +170,37 @@ class _NavIconButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final Color color =
-        selected ? theme.colorScheme.primary : theme.colorScheme.onSurface;
+    final color = selected ? theme.colorScheme.primary : Colors.white70;
 
-    return InkWell(
+    return GestureDetector(
       onTap: onTap,
-      child: Icon(icon, color: color, size: 32),
+      child: AnimatedScale(
+        duration: const Duration(milliseconds: 150),
+        scale: selected ? 1.2 : 1.0,
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(
+                  color: selected
+                      ? theme.colorScheme.onSurface
+                      : Colors.transparent,
+                  width: 2,
+                ),
+              ),
+            ),
+            child: SvgPicture.asset(
+              assetPath,
+              height: 28,
+              colorFilter: ColorFilter.mode(
+                selected ? theme.colorScheme.onSurface : Colors.white54,
+                BlendMode.srcIn,
+              ),
+            ),
+          )
+        ),
+      ),
     );
   }
 }

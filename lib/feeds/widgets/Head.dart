@@ -3,7 +3,7 @@ import '../../common/widgets/ProfileAvatar.dart';
 import '../../common/widgets/TimeAgoText.dart';
 import '../../profile/ProfilePage.dart';
 
-class FeedHead extends StatelessWidget {
+class Head extends StatelessWidget {
   final String profileImageUrl;
   final String userName;
   final String userId;
@@ -15,7 +15,7 @@ class FeedHead extends StatelessWidget {
   final bool isMine;
   final VoidCallback? onEdit;
 
-  const FeedHead({
+  const Head({
     Key? key,
     required this.profileImageUrl,
     required this.userName,
@@ -30,7 +30,7 @@ class FeedHead extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.fromLTRB(5, 10, 5, 15),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -57,7 +57,7 @@ class FeedHead extends StatelessWidget {
                         userName,
                         style: TextStyle(
                           fontSize: 14,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w800,
                           color: fontColor,
                           letterSpacing: -0.5,
                         ),
@@ -66,7 +66,7 @@ class FeedHead extends StatelessWidget {
                         userTitle ?? '',
                         style: TextStyle(
                           fontSize: 12,
-                          fontWeight: FontWeight.w400,
+                          fontWeight: FontWeight.w600,
                           color: fontColor,
                         ),
                       ),

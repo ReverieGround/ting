@@ -50,7 +50,6 @@ dependencies:
   kakao_flutter_sdk_user: ^1.9.7+3
   flutter_naver_login: ^2.0.0
   flutter_facebook_auth: ^6.0.3
-  flutter_svg: ^2.0.10+1 
   image_cropper: ^9.1.0
   path_provider: ^2.1.1 
   reorderable_grid_view: ^2.2.8
@@ -62,7 +61,11 @@ dependencies:
   cached_network_image: ^3.4.1
   flutter_cache_manager: ^3.4.1
   sqflite_common_ffi: ^2.3.6
-  
+  go_router: ^16.2.1
+  image_picker: ^1.2.0
+  flutter_svg: ^2.2.1
+  speech_to_text: ^7.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -158,4 +161,19 @@ flutter:
     - assets/fork_color.png
     - assets/fork_white.png
     - assets/comment.png
-    
+    - assets/chef.png
+    - assets/food_memo.png
+    - assets/spoon.png
+    - assets/spoon_2.png
+    - assets/spoon_3.png
+    - assets/spoon_4.png
+    - assets/cookie.png
+    - assets/anise.png
+    - assets/bow.png
+    - assets/bow_2.png
+    - assets/chat.png
+    - assets/restaurant.png
+    - assets/users-round.svg
+    - assets/user-round-pen.svg
+    - assets/user-round-plus.svg
+    - assets/notebook.svg

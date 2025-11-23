@@ -61,6 +61,7 @@ class _FollowButtonState extends State<FollowButton> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final me = _follow.me;
     if (me != null && me == widget.targetUid) {
       return const SizedBox.shrink(); // 본인 프로필이면 숨김
@@ -73,8 +74,8 @@ class _FollowButtonState extends State<FollowButton> {
         initialData: false,
         builder: (context, snap) {
           final isFollowing = snap.data ?? false;
-          final bg = isFollowing ? Colors.white : _pink;
-          final fg = isFollowing ? _pink : Colors.white;
+          final bg = isFollowing ? Colors.black : theme.colorScheme.onSurface;
+          final fg = isFollowing ? theme.colorScheme.onSurface : Colors.black;
 
           return Material(
             color: bg,
@@ -90,7 +91,7 @@ class _FollowButtonState extends State<FollowButton> {
                 decoration: BoxDecoration(
                   color: bg,
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: _pink, width: 1),
+                  border: Border.all(color: fg, width: 1),
                 ),
                 child: _busy
                     ? const SizedBox(

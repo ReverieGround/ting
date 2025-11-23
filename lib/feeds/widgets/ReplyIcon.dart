@@ -1,4 +1,4 @@
-// feeds/widgets/FeedReplyIcon.dart 
+// feeds/widgets/ReplyIcon.dart 
 import 'package:flutter/material.dart';
 
 // 숫자 단위 축약 함수 (변동 없음)
@@ -14,7 +14,7 @@ String formatNumber(int count) {
   }
 }
 
-class FeedReplyIcon extends StatefulWidget {
+class ReplyIcon extends StatefulWidget {
   final String postId;
   final int initialCommentCount;
   final Function(int newCommentCount)? onCommentPosted;
@@ -24,7 +24,7 @@ class FeedReplyIcon extends StatefulWidget {
 
   final Color fontColor;
 
-  const FeedReplyIcon({
+  const ReplyIcon({
     super.key,
     required this.postId,
     required this.initialCommentCount,
@@ -35,10 +35,10 @@ class FeedReplyIcon extends StatefulWidget {
   });
 
   @override
-  State<FeedReplyIcon> createState() => _CommentWidgetState();
+  State<ReplyIcon> createState() => _ReplyIconState();
 }
 
-class _CommentWidgetState extends State<FeedReplyIcon> {
+class _ReplyIconState extends State<ReplyIcon> {
   late int _currentCommentCount;
   final TextEditingController _commentController = TextEditingController();
 
@@ -49,7 +49,7 @@ class _CommentWidgetState extends State<FeedReplyIcon> {
   }
 
   @override
-  void didUpdateWidget(covariant FeedReplyIcon oldWidget) {
+  void didUpdateWidget(covariant ReplyIcon oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.initialCommentCount != oldWidget.initialCommentCount) {
       _currentCommentCount = widget.initialCommentCount;
@@ -58,7 +58,7 @@ class _CommentWidgetState extends State<FeedReplyIcon> {
 
   @override
   Widget build(BuildContext context) {
-    final String iconPath = 'assets/spoon_4.png';
+    final String iconPath = 'assets/chat.png';
 
     return GestureDetector(
       // onTap: _isPostingComment ? null : () => _showCommentInputBottomSheet(context),
@@ -67,16 +67,15 @@ class _CommentWidgetState extends State<FeedReplyIcon> {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Image.asset(
-            iconPath,
-            width: widget.iconSize,
-            height: widget.iconSize,
+          Padding(
+            padding: const EdgeInsets.all(2.0),
+            child: Image.asset(
+              iconPath,
+              width: widget.iconSize,
+              height: widget.iconSize,
+              color: widget.fontColor,
+            ),
           ),
-          // Icon(
-          //   Icons.local_fire_department, 
-          //   size: widget.iconSize,
-          //   color: widget.fontColor,
-          // ),
           const SizedBox(width: 3),
           Text(
             formatNumber(_currentCommentCount),

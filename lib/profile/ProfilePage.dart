@@ -15,6 +15,7 @@ import 'widgets/UserStatsRow.dart';
 import 'widgets/PinnedFeedsGrid.dart';
 import 'widgets/StatusMessage.dart';
 import 'widgets/FollowButton.dart';
+import 'widgets/ProfileHeader.dart';
 import 'tabs/YumTab.dart';
 import 'tabs/GuestBookTab.dart';
 
@@ -149,61 +150,16 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppHeader(
-        showBackButton: false,
-        backgroundColor: theme.scaffoldBackgroundColor,
-        titleWidget: Container(
-          margin: const EdgeInsets.only(top: 5),
-          child: Row(
-            children: [
-              ProfileAvatar(profileUrl: profileInfo.profileImage, size: 43),
-              const SizedBox(width: 12),
-              SizedBox(
-                height: 45,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      profileInfo.userName,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color: theme.colorScheme.onSurface,
-                      ),
-                    ),
-                    Text(
-                      profileInfo.userTitle,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w400,
-                        color: theme.colorScheme.onSurface.withOpacity(.7),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(kToolbarHeight + 65),
+        child: SafeArea(
+          top: true,
+          bottom: false,
+          child:ProfileHeader(profileInfo: profileInfo),
+        )
       ),
       body: CustomScrollView(
         slivers: [
-          SliverToBoxAdapter(
-            child: UserStatsRow(
-              yumCount: profileInfo.postCount,
-              recipeCount: profileInfo.recipeCount,
-              followerCount: profileInfo.followerCount,
-              followingCount: profileInfo.followingCount,
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: StatusMessage(
-              initialMessage: profileInfo.statusMessage ?? '',
-              onSave: isOwner ? _saveStatusMessage : (_) async => false,
-              readOnly: !isOwner,
-            ),
-          ),
           if (!isOwner)
             SliverToBoxAdapter(
               child: FollowButton(
@@ -256,15 +212,15 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                 child: TabBar(
                   controller: _tabController,
                   isScrollable: false,
-                  labelColor: theme.colorScheme.primary,
+                  labelColor: theme.colorScheme.onSurface,
                   unselectedLabelColor: theme.colorScheme.onSurface.withOpacity(.6),
-                  indicatorColor: theme.colorScheme.primary,
+                  indicatorColor: theme.colorScheme.onSurface,
                   indicatorWeight: 2,
                   labelPadding: const EdgeInsets.symmetric(horizontal: 10),
                   indicatorPadding: EdgeInsets.zero,
                   indicatorSize: TabBarIndicatorSize.tab,
                   indicator: UnderlineTabIndicator(
-                    borderSide: BorderSide(width: 2, color: theme.colorScheme.primary),
+                    borderSide: BorderSide(width: 2, color: theme.colorScheme.onSurface),
                     insets: EdgeInsets.zero,
                   ),
                   dividerColor: Colors.transparent,

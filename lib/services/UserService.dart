@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import '../models/ProfileInfo.dart';
+import '../models/UserData.dart'; 
 
 class UserService {
   final _fs = FirebaseFirestore.instance;
@@ -164,4 +165,48 @@ class UserService {
       return false;
     }
   }
+
+  Future<List<UserData>> fetchUserList(String targetUserId, String type) async {
+    try {
+      // 🔹 followers / following / blocks = 서브컬렉션 구조
+      final snapshot = await _fs
+          .collection('users')
+          .doc(targetUserId)
+          .collection(type)
+          .get();
+
+      if (snapshot.docs.isEmpty) return [];
+
+      // 🔹 각 문서의 ID가 userId 역할
+      final List<UserData> result = [];
+
+      // 병렬 요청 (성능 최적화)
+      final futures = snapshot.docs.map((doc) async {
+        final uid = doc.id;
+        final userSnap = await _fs.collection('users').doc(uid).get();
+
+        if (userSnap.exists) {
+          final d = userSnap.data()!;
+          return UserData(
+            userId: uid,
+            userName: d['user_name'] ?? '',
+            location: d['location'] ?? '',
+            title: d['user_title'] ?? '',
+            statusMessage: d['status_message'],
+            profileImage: d['profile_image'],
+          );
+        }
+        return null;
+      });
+
+      final loaded = await Future.wait(futures);
+      result.addAll(loaded.whereType<UserData>());
+
+      return result;
+    } catch (e) {
+      debugPrint('🔥 fetchUserList error: $e');
+      return [];
+    }
+  }
+
 }

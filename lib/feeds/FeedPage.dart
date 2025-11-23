@@ -1,9 +1,9 @@
 // feeds/FeedPage.dart
 import 'package:flutter/material.dart';
 import 'widgets/FeedCard.dart';
-import '../create/CreatePostPage.dart';
 import '../models/FeedData.dart';
 import '../services/FeedService.dart';
+import 'widgets/FeedFilterToggle.dart'; 
 
 class FeedPage extends StatefulWidget {
   const FeedPage({super.key});
@@ -17,6 +17,7 @@ class _FeedPageState extends State<FeedPage> with AutomaticKeepAliveClientMixin 
 
   List<FeedData> _feeds = [];
   bool _loading = false;
+  int _selectedFilter = 0; // 0: 전체, 1: 요리, 2: 식당
 
   int _initialLimit = 8;
   static const _columns = 1;
@@ -83,11 +84,6 @@ class _FeedPageState extends State<FeedPage> with AutomaticKeepAliveClientMixin 
     await _loadInitial();
   }
 
-  Future<void> _navigate(BuildContext context) async {
-    await Navigator.push(context, MaterialPageRoute(builder: (_) => const CreatePostPage()));
-    await _refresh();
-  }
-
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -124,11 +120,25 @@ class _FeedPageState extends State<FeedPage> with AutomaticKeepAliveClientMixin 
                     const SnackBar(content: Text('삭제되었습니다.')),
                   );
                 },
+                showTags: false,
+                showContent: false,
+                showIcons: false,
+                overlayTopWriter: true,
               );
             },
           );
 
     return Scaffold(
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(48),
+        child: FeedFilterToggle(
+          selectedIndex: _selectedFilter,
+          onSelected: (index) {
+            setState(() => _selectedFilter = index);
+            // TODO: 필터링 로직
+          },
+        ),
+      ),
       backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         top: true, bottom: false, left: false, right: false,

@@ -1,4 +1,4 @@
-// feeds/widgets/FeedTag.dart 
+// feeds/widgets/Tag.dart 
 import 'package:flutter/material.dart';
 
 final Map<String, String> assetMap = {
@@ -9,20 +9,19 @@ final Map<String, String> assetMap = {
   'Wack': 'assets/wack.png',
 };
 
-class FeedTag extends StatelessWidget {
-  final String? label; // 텍스트 라벨
+class Tag extends StatelessWidget {
+  final String? label;
+  final Color backgroundColor;
+  final Color textColor;
+  final double fontSize;
+  final FontWeight fontWeight;
+  final double horizontalPadding;
+  final double verticalPadding;
+  final double borderRadius;
 
-  final Color backgroundColor; // 태그 배경색
-  final Color textColor; // 태그 텍스트 색상
-  final double fontSize; // 태그 폰트 크기 (아이콘 크기에도 사용)
-  final FontWeight fontWeight; // 태그 폰트 굵기
-  final double horizontalPadding; // 좌우 패딩
-  final double verticalPadding; // 상하 패딩
-  final double borderRadius; // 모서리 둥글기
-
-  const FeedTag({
+  const Tag({
     Key? key,
-    required this.label, // 라벨은 필수
+    required this.label,
     this.backgroundColor = const Color.fromRGBO(255, 255, 255, 0.8),
     this.textColor = Colors.black,
     this.fontSize = 14,
@@ -40,21 +39,18 @@ class FeedTag extends StatelessWidget {
     if (label == ''){
       return SizedBox.shrink();
     }
-    // label에 해당하는 이미지 에셋 경로를 assetMap에서 찾습니다.
-    final String? iconAssetPath = assetMap[label]; // 'label' 변수 사용
+    final String? iconAssetPath = assetMap[label]; 
 
-    // 아이콘과 텍스트를 포함할 Row 위젯
     final Widget labelContent = Row(
-      mainAxisSize: MainAxisSize.min, // Row의 크기를 자식 위젯에 맞춥니다.
+      mainAxisSize: MainAxisSize.min, 
       children: [
-        // iconAssetPath가 null이 아닐 때만 Image.asset을 표시합니다.
         if (iconAssetPath != null) ...[
           Image.asset(
             iconAssetPath,
-            height: fontSize * 1.2, // 폰트 크기와 동일하게 아이콘 크기 설정
-            width: fontSize * 1.2, // 폰트 크기와 동일하게 아이콘 크기 설정
+            height: fontSize * 1.2, 
+            width: fontSize * 1.2, 
           ),
-          const SizedBox(width: 4), // 아이콘과 텍스트 사이 간격
+          const SizedBox(width: 4), 
         ],
         Text(
           label!,
@@ -75,6 +71,10 @@ class FeedTag extends StatelessWidget {
       decoration: BoxDecoration(
         color: backgroundColor,
         borderRadius: BorderRadius.circular(borderRadius),
+        border: Border.all(
+          color: Colors.black,
+          width: 0.5,
+        ),
       ),
       child: labelContent,
     );

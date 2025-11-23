@@ -1,13 +1,13 @@
 // feeds/widgets/FeedCard.dart
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'FeedHead.dart';
-import 'FeedImages.dart';
-import 'FeedContent.dart';
+import 'Head.dart';
+import 'Images.dart';
+import 'Content.dart';
 import '../../posts/PostPage.dart';
-import 'FeedLikeIcon.dart';
-import 'FeedLikeIcon2.dart';
-import 'FeedReplyIcon.dart';
+import 'CookingIcon.dart';
+import 'CitationIcon.dart';
+import 'ReplyIcon.dart';
 import '../../models/PostData.dart';
 import '../../models/FeedData.dart';
 import '../../services/PostService.dart';
@@ -17,6 +17,7 @@ class FeedCard extends StatefulWidget {
   final Color fontColor;
   final Color backgroundColor;
   final bool showTopWriter;
+  final bool overlayTopWriter;
   final bool showBottomWriter;
   final bool showTags;
   final bool showIcons;
@@ -39,6 +40,7 @@ class FeedCard extends StatefulWidget {
     this.fontColor = Colors.black,
     this.backgroundColor = Colors.white,
     this.showTopWriter = true,
+    this.overlayTopWriter = false,
     this.showBottomWriter = false,
     this.showTags = true,
     this.showContent = true,
@@ -71,6 +73,7 @@ class _FeedCardState extends State<FeedCard> {
   Color get fontColor => widget.fontColor;
   Color get backgroundColor => widget.backgroundColor;
   bool get showTopWriter => widget.showTopWriter;
+  bool get overlayTopWriter => widget.overlayTopWriter;
   bool get showBottomWriter => widget.showBottomWriter;
   bool get showTags => widget.showTags;
   bool get showIcons => widget.showIcons;
@@ -88,17 +91,13 @@ class _FeedCardState extends State<FeedCard> {
 
   @override
   Widget build(BuildContext context) {
+
     final theme = Theme.of(context);
-
-    final Color effectiveFont =
-        fontColor == Colors.black ? theme.colorScheme.onSurface : fontColor;
-    final Color effectiveBg =
-        backgroundColor == Colors.white ? theme.cardColor : backgroundColor;
-
+    final Color effectiveFont = fontColor == Colors.black ? theme.colorScheme.onSurface : fontColor;
+    final Color effectiveBg = backgroundColor == Colors.white ? theme.cardColor : backgroundColor;
     final comments = feed.post.comments ?? [];
     final imageUrls = (feed.post.imageUrls as List<dynamic>);
     final myUid = FirebaseAuth.instance.currentUser?.uid;
-
     final currCategory = _catOverride ?? feed.post.category;
     final currValue = _valOverride ?? feed.post.value;
 
@@ -107,94 +106,77 @@ class _FeedCardState extends State<FeedCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (showTopWriter)
-            FeedHead(
-              profileImageUrl: feed.user.profileImage!,
-              userName: feed.user.userName,
-              userId: feed.user.userId,
-              userTitle: feed.user.title,
-              createdAt: formatTimestamp(feed.post.createdAt),
-              fontColor: effectiveFont,
-              isMine: feed.user.userId == myUid,
-              onEdit: () => _openEditSheet(context),
-            ),
-          if (imageUrls.isNotEmpty)
-            Stack(
-              children: [
-                GestureDetector(
-                onTap: () async {
-                  if (!blockNavPost) {
-                    final deleted = await Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => PostPage(feed: feed)),
-                    );
-                    if (deleted == true) {
-                      if (widget.onDeleted != null) {
-                        widget.onDeleted!.call();
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              '삭제되었습니다.',
-                              style: TextStyle(color: theme.colorScheme.onPrimary),
-                            ),
-                            backgroundColor: theme.colorScheme.primary,
-                          ),
-                        );
-                      }
-                    }
-                  }
-                },
-                child: _buildAutoImageArea(context, imageUrls, currCategory, currValue),
-              ),
-              Positioned(
-                bottom: 10,
-                right: 10,
-                child:  FeedLikeIcon2(
-                  postId: feed.post.postId,
-                  userId: feed.user.userId,
-                  initialLikeCount: feed.numLikes,
-                  hasLiked: feed.isLikedByUser,
-                  onToggleCompleted: null,
-                  fontSize: iconSize - 3,
-                  iconSize: iconSize,
-                  fontColor: effectiveFont,
-                ),
-              )
-              ]),
-          if (showIcons)
+          if (showTopWriter & overlayTopWriter)
             Padding(
-              padding: EdgeInsets.symmetric(vertical: iconVGap, horizontal: iconHGap),
-              child: SizedBox(
-                height: iconSize,
-                child: Row(
-                  mainAxisAlignment: iconAlignment,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    FeedLikeIcon(
-                      postId: feed.post.postId,
+              padding: const EdgeInsets.only(bottom: 5),
+              child: Stack(
+                children: [
+                if (imageUrls.isNotEmpty)
+                  (imageHeight != null) ?
+                  _buildLargeFeedCard(context, imageUrls, currCategory, currValue):
+                  _buildSmallFeedCard(context, imageUrls, currCategory, currValue),
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.black87,
+                          Colors.transparent,
+                        ],
+                      ),
+                    ),
+                    child: Head(
+                      profileImageUrl: feed.user.profileImage!,
+                      userName: feed.user.userName,
                       userId: feed.user.userId,
-                      initialLikeCount: feed.numLikes,
-                      hasLiked: feed.isLikedByUser,
-                      onToggleCompleted: null,
-                      fontSize: iconSize - 3,
-                      iconSize: iconSize,
+                      userTitle: feed.user.title,
+                      createdAt: formatTimestamp(feed.post.createdAt),
                       fontColor: effectiveFont,
+                      isMine: feed.user.userId == myUid,
+                      onEdit: () => _openEditSheet(context),
                     ),
-                    const SizedBox(width: 12),
-                    FeedReplyIcon(
-                      postId: feed.post.postId,
-                      initialCommentCount: feed.numComments,
-                      fontSize: iconSize - 3,
-                      iconSize: iconSize,
-                      fontColor: effectiveFont,
-                    ),
-                  ],
+                  ),
                 ),
-              ),
+              ]),
             ),
+          // ===========================
+          // HEAD AREA
+          // ===========================
+          if (showTopWriter & !overlayTopWriter)
+              Head(
+                profileImageUrl: feed.user.profileImage!,
+                userName: feed.user.userName,
+                userId: feed.user.userId,
+                userTitle: feed.user.title,
+                createdAt: formatTimestamp(feed.post.createdAt),
+                fontColor: effectiveFont,
+                isMine: feed.user.userId == myUid,
+                onEdit: () => _openEditSheet(context),
+              ),
+          // ===========================
+          // IMAGE AREA
+          // ===========================
+          if (imageUrls.isNotEmpty & !overlayTopWriter)
+            (imageHeight != null) ?
+            _buildLargeFeedCard(context, imageUrls, currCategory, currValue):
+            _buildSmallFeedCard(context, imageUrls, currCategory, currValue),
+          
+          // ===========================
+          // STAT AREA
+          // ===========================
+          if (showIcons)
+            _buildStatIcons(effectiveFont),
+          
+          // ===========================
+          // CONTENT AREA
+          // ===========================
           if (showContent)
-            FeedContent(
+            Content(
               content: feed.post.content,
               comments: comments,
               fontColor: effectiveFont,
@@ -379,40 +361,89 @@ class _FeedCardState extends State<FeedCard> {
     }
   }
 
-  Widget _buildAutoImageArea(
+  Widget _buildLargeFeedCard(
     BuildContext context,
     List<dynamic> imageUrls,
     String? currCategory,
     String? currValue,
   ) {
-    if (imageHeight != null) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(borderRadius),
-        clipBehavior: Clip.antiAlias,
-        child: SizedBox(
-          height: imageHeight,
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              FeedImages(
-                imageUrls: imageUrls,
-                category: currCategory ?? feed.post.category,
-                value: currValue ?? feed.post.value ?? '',
-                recipeId: feed.post.recipeId,
-                recipeTitle: "",
-                showTags: showTags,
-                height: imageHeight,
-                fit: fit,
-                onRecipeButtonPressed: () {},
-              ),
-              if (isPinned) _buildPinButton(),
-              if (showBottomWriter) _buildBottomWriterOverlay(context),
-            ],
+    final _theme = Theme.of(context);
+    return Stack(
+      children: [
+        GestureDetector(
+        onTap: () async {
+          if (!blockNavPost) {
+            final deleted = await Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => PostPage(feed: feed)),
+            );
+            if (deleted == true) {
+              if (widget.onDeleted != null) {
+                widget.onDeleted!.call();
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      '삭제되었습니다.',
+                      style: TextStyle(color: _theme.colorScheme.onPrimary),
+                    ),
+                    backgroundColor: _theme.colorScheme.primary,
+                  ),
+                );
+              }
+            }
+          }
+        },
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(borderRadius),
+          clipBehavior: Clip.antiAlias,
+          child: SizedBox(
+            height: imageHeight,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                Images(
+                  imageUrls: imageUrls,
+                  category: currCategory ?? feed.post.category,
+                  value: currValue ?? feed.post.value ?? '',
+                  recipeId: feed.post.recipeId,
+                  recipeTitle: "",
+                  showTags: showTags,
+                  height: imageHeight,
+                  fit: fit,
+                  onRecipeButtonPressed: () {},
+                ),
+                if (isPinned) _buildPinButton(),
+                if (showBottomWriter) _buildBottomWriterOverlay(context),
+              ],
+            ),
           ),
+        )
+      ),
+      Positioned(
+        bottom: 10,
+        right: 10,
+        child:  CitationIcon(
+          postId: feed.post.postId,
+          userId: feed.user.userId,
+          category: feed.post.category,
+          initialLikeCount: feed.numLikes,
+          hasLiked: feed.isLikedByUser,
+          onToggleCompleted: null,
+          fontSize: iconSize * 1.8 - 3,
+          iconSize: iconSize * 1.8,
+          fontColor: fontColor,
         ),
-      );
-    }
+      )]
+    );
+  }
 
+  Widget _buildSmallFeedCard(
+    BuildContext context,
+    List<dynamic> imageUrls,
+    String? currCategory,
+    String? currValue,
+  ) {
     final aspect = _autoAspectByCount(imageUrls.length);
     return LayoutBuilder(
       builder: (context, c) {
@@ -426,7 +457,7 @@ class _FeedCardState extends State<FeedCard> {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                FeedImages(
+                Images(
                   imageUrls: imageUrls,
                   category: currCategory ?? feed.post.category,
                   value: currValue ?? feed.post.value ?? '',
@@ -439,6 +470,21 @@ class _FeedCardState extends State<FeedCard> {
                 ),
                 if (isPinned) _buildPinButton(),
                 if (showBottomWriter) _buildBottomWriterOverlay(context),
+                Positioned(
+                  bottom: 10,
+                  right: 10,
+                  child:  CitationIcon(
+                    postId: feed.post.postId,
+                    userId: feed.user.userId,
+                    category: feed.post.category,
+                    initialLikeCount: feed.numLikes,
+                    hasLiked: feed.isLikedByUser,
+                    onToggleCompleted: null,
+                    fontSize: iconSize * 1.8 - 3,
+                    iconSize: iconSize * 1.8,
+                    fontColor: fontColor,
+                  ),
+                )
               ],
             ),
           ),
@@ -516,6 +562,38 @@ class _FeedCardState extends State<FeedCard> {
     );
   }
 
+  Widget _buildStatIcons(Color fontColor){
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: iconVGap, horizontal: iconHGap),
+      child: SizedBox(
+        height: iconSize,
+        child: Row(
+          mainAxisAlignment: iconAlignment,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            CookingIcon(
+              postId: feed.post.postId,
+              userId: feed.user.userId,
+              initialLikeCount: feed.numLikes,
+              hasLiked: feed.isLikedByUser,
+              onToggleCompleted: null,
+              fontSize: iconSize - 3,
+              iconSize: iconSize,
+              fontColor: fontColor,
+            ),
+            const SizedBox(width: 12),
+            ReplyIcon(
+              postId: feed.post.postId,
+              initialCommentCount: feed.numComments,
+              fontSize: iconSize - 3,
+              iconSize: iconSize,
+              fontColor: fontColor,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   double _autoAspectByCount(int count) {
     if (count <= 1) return 4 / 5;

@@ -1,4 +1,4 @@
-// feeds/widgets/FeedLikeIcon.dart 
+// feeds/widgets/CitationIcon.dart 
 import 'package:flutter/material.dart';
 import '../../services/PostService.dart'; 
 
@@ -15,9 +15,10 @@ String formatNumber(int count) {
   }
 }
 
-class FeedLikeIcon extends StatefulWidget {
+class CitationIcon extends StatefulWidget {
   final String postId;
   final String userId;
+  final String category;
   final int initialLikeCount;
   final bool hasLiked;
   final Function(int newLikeCount, bool newIsLiked)? onToggleCompleted;
@@ -25,10 +26,11 @@ class FeedLikeIcon extends StatefulWidget {
   final double iconSize;
   final Color fontColor;
 
-  const FeedLikeIcon({
+  const CitationIcon({
     super.key,
     required this.postId,
     required this.userId,
+    required this.category,
     required this.initialLikeCount,
     required this.hasLiked,
     this.onToggleCompleted,
@@ -38,10 +40,10 @@ class FeedLikeIcon extends StatefulWidget {
   });
 
   @override
-  State<FeedLikeIcon> createState() => _LikeWidgetState();
+  State<CitationIcon> createState() => _CitationIconState();
 }
 
-class _LikeWidgetState extends State<FeedLikeIcon> {
+class _CitationIconState extends State<CitationIcon> {
   late int _currentLikeCount;
   late bool _currentHasLiked; 
   bool _isToggling = false;
@@ -57,7 +59,7 @@ class _LikeWidgetState extends State<FeedLikeIcon> {
   }
 
   @override
-  void didUpdateWidget(covariant FeedLikeIcon oldWidget) {
+  void didUpdateWidget(covariant CitationIcon oldWidget) {
     super.didUpdateWidget(oldWidget);
     // 좋아요 수와 좋아요 여부가 외부에서 변경될 때만 업데이트
     if (widget.initialLikeCount != oldWidget.initialLikeCount) {
@@ -119,42 +121,26 @@ class _LikeWidgetState extends State<FeedLikeIcon> {
 
   @override
   Widget build(BuildContext context) {
-    final String blackIconPath = 'assets/fork.png';
-    final String pinkIconPath = 'assets/fork_color.png';
-    final String iconPath = 'assets/bow_2.png';
-    final theme = Theme.of(context);
+    
     return GestureDetector(
-      onTap: _isToggling ? null : _toggleLike,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-
-          Image.asset(
-            iconPath,
-            width: widget.iconSize,
-            height: widget.iconSize,
-            color: widget.fontColor,
-          ),
-          // Icon(
-          //   Icons.cookie_outlined, 
-          //   size: widget.iconSize,
-          //   color: _currentHasLiked ? null : widget.fontColor,
+      // onTap: _isToggling ? null : _toggleLike,
+      onTap: null,
+      child: Container(
+        padding: EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Color.fromARGB(100, 5, 5, 5),
+          shape: BoxShape.circle,
+          // border: Border.all(
+          //   color: Colors.black,
+          //   width: 0.5,
           // ),
-          const SizedBox(width: 6),
-          Text(
-            formatNumber(_currentLikeCount),
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: widget.fontSize,
-              color: widget.fontColor,
-            ),
-            textHeightBehavior: const TextHeightBehavior(
-              applyHeightToFirstAscent: false,
-              applyHeightToLastDescent: false,
-            ),
-          ),
-        ],
+        ),
+        child: Image.asset(
+          widget.category == '요리' ? "assets/chef.png" : "assets/restaurant.png",
+          width: widget.iconSize,
+          height: widget.iconSize,
+          color: Colors.white,
+        ),
       ),
     );
   }
