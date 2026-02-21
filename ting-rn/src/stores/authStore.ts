@@ -36,7 +36,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const doc = await firestore().collection('users').doc(user.uid).get();
       const data = doc.data();
       const needsOnboarding =
-        !doc.exists ||
+        !doc.exists() ||
         !data?.user_name ||
         !data?.country_code;
 
