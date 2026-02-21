@@ -128,3 +128,4 @@ test/widget_test.dart
 
 assets/
 !ting-rn/assets/
+!ting-rn/plugins/
