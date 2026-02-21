@@ -125,3 +125,5 @@ api_list.txt
 analysis_options.yaml
 
 test/widget_test.dart
+
+assets/

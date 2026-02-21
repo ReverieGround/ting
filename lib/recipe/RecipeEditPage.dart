@@ -26,6 +26,97 @@ const String recipeEditSystemPrompt = """
 - JSON만 반환하세요. 다른 설명은 절대 포함하지 마세요.
 """;
 
+// LlmModel? _llmModel;
+// LlmSession? _llmSession;
+
+// Future<void> initLlm() async {
+//   _llmModel = await LlmModel.create(
+//     modelPath: 'assets/models/gemma-2b-it.bin',
+//     maxTokens: 1024,
+//     temperature: 0.7,
+//   );
+
+//   _llmSession = _llmModel!.createSession();
+// }
+
+// Future<Recipe?> sendRecipeEditRequestOnDevice({
+//   required Recipe recipe,
+//   required String message,
+// }) async {
+//   if (_llmInference == null) {
+//     print("ERROR: LLM 모델이 초기화되지 않았습니다.");
+//     return null;
+//   }
+
+//   // 1. 현재 레시피 JSON
+//   final currentRecipeJson = jsonEncode(recipe.toJson());
+
+//   // 2. LLM에 전달할 프롬프트
+//   final fullPrompt = """
+// $recipeEditSystemPrompt
+// ---
+// ## 입력 정보
+
+// ### 1. 현재 레시피 JSON (절대 수정 금지):
+// $currentRecipeJson
+
+// ### 2. 수정 요청 메시지:
+// $message
+
+// ## 출력 지시사항 (반드시 준수)
+// - 위 요청을 반영하여 레시피를 최소한으로 수정하세요.
+// - 반드시 JSON **데이터만** 출력하세요.
+// - 설명, 마크다운, 텍스트를 절대 포함하지 마세요.
+
+// ### 출력 형식:
+// {
+//   "recipe": {
+//     // 수정된 레시피 데이터
+//   }
+// }
+// """;
+
+//   print("모델에 전송할 프롬프트 길이: ${fullPrompt.length}");
+
+//   String content = "";
+
+//   try {
+//     // 3. 온디바이스 LLM 호출
+//     final response = await _llmInference!.generateResponse(fullPrompt);
+//     content = response.text.trim();
+
+//     print("Raw Content from LLM: $content");
+
+//     // 4. 마크다운 코드 블록 제거 (```json, ```)
+//     content = content
+//         .replaceFirst(RegExp(r'^```json\s*'), '')
+//         .replaceFirst(RegExp(r'^```\s*'), '')
+//         .replaceFirst(RegExp(r'\s*```$'), '')
+//         .trim();
+
+//     // 5. JSON 형식 검증
+//     if (!content.startsWith('{') || !content.endsWith('}')) {
+//       throw FormatException("유효한 JSON 객체가 아닙니다.");
+//     }
+
+//     // 6. JSON 파싱
+//     final jsonResult = jsonDecode(content);
+
+//     if (jsonResult is Map && jsonResult.containsKey('recipe')) {
+//       return Recipe.fromJson(jsonResult['recipe']);
+//     } else {
+//       throw FormatException("'recipe' 키가 존재하지 않습니다.");
+//     }
+//   } catch (e) {
+//     print(
+//       "온디바이스 LLM JSON 파싱 오류: $e\n"
+//       "문제의 Content:\n$content",
+//     );
+//     return null;
+//   }
+// }
+
+
 Future<Recipe?> sendRecipeEditRequest({
   required Recipe recipe,
   required String message,
@@ -100,11 +191,11 @@ class MethodEdit {
 }
 
 // *******************************************************************
-// 2. 리팩토링된 메인 위젯
+// 2. 메인 위젯
 // *******************************************************************
 
 class RecipeEditPage extends StatefulWidget {
-  final Recipe recipe;
+  final Recipe? recipe;
 
   const RecipeEditPage({super.key, required this.recipe});
 
@@ -116,7 +207,7 @@ class _RecipeEditPageState extends State<RecipeEditPage> {
   final PageController _imageController = PageController();
   final TextEditingController _notesController = TextEditingController();
   final List<File> _capturedImages = [];
-  late Recipe _currentRecipe;
+  late Recipe? _currentRecipe;
 
   // 수정 가능한 리스트 (State 내에서 관리)
   final List<IngredientEdit> _editableIngredients = [];
@@ -137,7 +228,9 @@ class _RecipeEditPageState extends State<RecipeEditPage> {
     _currentRecipe = widget.recipe; // 원본 레시피 복사
 
     // 원본 데이터를 편집 가능한 리스트로 복사
-    _initializeEditableLists(_currentRecipe);
+    if (_currentRecipe != null){
+      _initializeEditableLists(_currentRecipe!);
+    }
 
     // Initialize speech
     Future.delayed(const Duration(milliseconds: 500), _initSpeech);
@@ -161,8 +254,6 @@ class _RecipeEditPageState extends State<RecipeEditPage> {
   void _applyRecipeUpdate(Recipe updated) {
     setState(() {
       _currentRecipe = updated;
-
-      // UI용 편집 가능한 리스트도 업데이트
       _initializeEditableLists(updated);
     });
   }
@@ -276,22 +367,23 @@ class _RecipeEditPageState extends State<RecipeEditPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("레시피 개선 요청 중...")),
       );
-
-      final updated = await sendRecipeEditRequest(
-        recipe: _currentRecipe,
-        message: msg,
-      );
-      
-      if (updated != null) {
-        _applyRecipeUpdate(updated);
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("레시피가 음성 명령에 따라 업데이트되었습니다!")),
+      if (_currentRecipe != null) {
+        final updated = await sendRecipeEditRequest(
+          recipe: _currentRecipe!,
+          message: msg,
         );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("레시피 업데이트에 실패했습니다.")),
-        );
+        
+        if (updated != null) {
+          _applyRecipeUpdate(updated);
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("레시피가 음성 명령에 따라 업데이트되었습니다!")),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("레시피 업데이트에 실패했습니다.")),
+          );
+        }
       }
     }
   }
@@ -471,7 +563,12 @@ class _RecipeEditPageState extends State<RecipeEditPage> {
     final buffer = StringBuffer();
 
     // 레시피 제목
-    buffer.writeln('레시피: ${_currentRecipe.title}\n');
+    if (_currentRecipe != null) {
+      buffer.writeln('레시피: ${_currentRecipe!.title}\n');
+    }
+    else {
+      buffer.writeln('레시피를 먼저 선택해주세요.\n');
+    }
 
     // 재료 (수정된 것만 또는 전체)
     // 원본 코드에서 수정된 것만 출력하도록 했으므로 그대로 유지
@@ -586,14 +683,18 @@ class _RecipeEditPageState extends State<RecipeEditPage> {
   }
 
   Widget _buildOriginalRecipeView() {
+    if (widget.recipe == null)
+      return ListView(); 
+
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
         // 원본 레시피 이미지
+      
         ClipRRect(
           borderRadius: BorderRadius.circular(12),
           child: Image.network(
-            widget.recipe.images.originalUrl,
+            widget.recipe!.images.originalUrl,
             height: 200,
             fit: BoxFit.cover,
             errorBuilder: (context, error, stackTrace) {
@@ -609,13 +710,13 @@ class _RecipeEditPageState extends State<RecipeEditPage> {
 
         // 레시피 제목
         Text(
-          widget.recipe.title,
+          widget.recipe!.title,
           style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
 
         // 팁
-        if (widget.recipe.tips.isNotEmpty)
+        if (widget.recipe!.tips.isNotEmpty)
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -623,7 +724,7 @@ class _RecipeEditPageState extends State<RecipeEditPage> {
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
-              '💡 ${widget.recipe.tips}',
+              '💡 ${widget.recipe!.tips}',
               style: const TextStyle(fontStyle: FontStyle.italic),
             ),
           ),
@@ -635,7 +736,7 @@ class _RecipeEditPageState extends State<RecipeEditPage> {
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         const Divider(),
-        ...widget.recipe.ingredients.map((ing) => Padding(
+        ...widget.recipe!.ingredients.map((ing) => Padding(
           padding: const EdgeInsets.symmetric(vertical: 4),
           child: Text('• ${ing.name}: ${ing.quantity}'),
         )),
@@ -647,7 +748,7 @@ class _RecipeEditPageState extends State<RecipeEditPage> {
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         const Divider(),
-        ...widget.recipe.methods.asMap().entries.map((entry) {
+        ...widget.recipe!.methods.asMap().entries.map((entry) {
           final index = entry.key;
           final method = entry.value;
           return Padding(
@@ -714,9 +815,9 @@ class _RecipeEditPageState extends State<RecipeEditPage> {
             ),
             onSubmitted: (value) async {
               // 직접 입력 후 엔터/완료 시에도 GPT 호출 가능
-              if (value.trim().isNotEmpty) {
+              if (value.trim().isNotEmpty && (_currentRecipe != null)) {
                 final updated = await sendRecipeEditRequest(
-                  recipe: _currentRecipe,
+                  recipe: _currentRecipe!,
                   message: value.trim(),
                 );
                 if (updated != null) {
@@ -761,7 +862,7 @@ class _RecipeEditPageState extends State<RecipeEditPage> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    widget.recipe.title,
+                    widget.recipe?.title ?? '레시피 제목 없음',
                     style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                 ),
@@ -772,14 +873,14 @@ class _RecipeEditPageState extends State<RecipeEditPage> {
                 ),
               ],
             ),
-            if (widget.recipe.tips.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Text(
-                '💡 ${widget.recipe.tips}',
-                style: TextStyle(fontSize: 12, color: Colors.grey[400], fontStyle: FontStyle.italic),
-              ),
-            ],
-
+            if (widget.recipe != null) 
+              if (widget.recipe!.tips.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Text(
+                  '💡 ${widget.recipe!.tips}',
+                  style: TextStyle(fontSize: 12, color: Colors.grey[400], fontStyle: FontStyle.italic),
+                ),
+              ],
             // 재료 및 조리법 수정 섹션 (확장 시 표시)
             if (_showRecipeDetails) ...[
               const SizedBox(height: 8),

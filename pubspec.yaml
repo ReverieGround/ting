@@ -65,6 +65,8 @@ dependencies:
   image_picker: ^1.2.0
   flutter_svg: ^2.2.1
   speech_to_text: ^7.0.0
+  flutter_dotenv: ^5.0.2
+  flutter_gemma: ^0.11.13
 
 dev_dependencies:
   flutter_test:
@@ -129,51 +131,7 @@ flutter:
   # see https://flutter.dev/to/font-from-package
 
   assets:
-    - assets/default_profile.png
-    - assets/login_icons/facebook_logo.png
-    - assets/login_icons/google_logo.png
-    - assets/login_icons/kakao_logo.png
-    - assets/login_icons/naver_logo.png
-    - assets/vibeyum_logo.png
-    - assets/logo.png
-    - assets/logo_black.png
-    - assets/logo_white.png
-    - assets/navi_home_black.png
-    - assets/navi_home_pink.png
-    - assets/navi_profile_black.png
-    - assets/navi_profile_pink.png
-    - assets/navi_nearby_black.png
-    - assets/navi_nearby_pink.png
-    - assets/navi.png
-    - assets/thunder.png
-    - assets/fire.png
-    - assets/soso.png
-    - assets/tasty.png
-    - assets/wack.png
-    - assets/woops.png
-    - assets/title_logo.svg
-    - assets/title_logo.png
-    - assets/recipe_dict_filtered.json
-    - assets/rotate.png
-    - assets/link.png
-    - assets/search.png
-    - assets/fork.png
-    - assets/fork_color.png
-    - assets/fork_white.png
-    - assets/comment.png
-    - assets/chef.png
-    - assets/food_memo.png
-    - assets/spoon.png
-    - assets/spoon_2.png
-    - assets/spoon_3.png
-    - assets/spoon_4.png
-    - assets/cookie.png
-    - assets/anise.png
-    - assets/bow.png
-    - assets/bow_2.png
-    - assets/chat.png
-    - assets/restaurant.png
-    - assets/users-round.svg
-    - assets/user-round-pen.svg
-    - assets/user-round-plus.svg
-    - assets/notebook.svg
+    - assets/images/
+    - assets/images/user-square.svg
+    - assets/images/note2.svg
+    - assets/models/gemma-2b-it-cpu-int8.bin

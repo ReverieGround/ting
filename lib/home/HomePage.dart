@@ -3,6 +3,7 @@ import '../feeds/FeedPage.dart';
 import '../profile/ProfilePage.dart';
 import '../create/CreatePostPage.dart';
 import '../recipe/RecipeListPage.dart'; 
+import '../recipe/RecipeEditPage.dart'; 
 import 'package:flutter_svg/flutter_svg.dart';
 
 class HomePage extends StatefulWidget {
@@ -23,8 +24,9 @@ class _HomePageState extends State<HomePage> {
 
   final List<Widget?> _pages = [
     const FeedPage(key: PageStorageKey('community')),
-    null, // FAB 액션
-    null, // Profile (lazy)
+    null, // 2nd page
+    null, // 3rd page
+    null, // 4rd page
   ];
 
   final _bucket = PageStorageBucket();
@@ -32,15 +34,21 @@ class _HomePageState extends State<HomePage> {
   void _ensurePage(int index) {
     if (_pages[index] != null) return;
     switch (index) {
+      case 1:
+        _pages[1] = const RecipeListPage();
+        break;
       case 2:
-        _pages[2] = const ProfilePage(key: PageStorageKey('profile'));
+        _pages[2] = const RecipeEditPage(recipe: null);
+        break;
+      case 3:
+        _pages[3] = const ProfilePage(key: PageStorageKey('profile'));
         break;
     }
   }
 
   void _onItemTapped(int index) {
     if (!mounted) return;
-    if (index == 1) { _openCook(); return; } // FAB 위치는 탭 이동 X
+    // if (index == 1) { _openCook(); return; } // FAB 위치는 탭 이동 X
     setState(() {
       _selectedIndex = index;
       _ensurePage(index);
@@ -101,19 +109,34 @@ class _HomePageState extends State<HomePage> {
                       padding: EdgeInsets.symmetric(horizontal: sidePadding),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           _NavIconButton(
-                            assetPath: 'assets/users-round.svg',
+                            assetPath: 'assets/feeds.svg',
                             label: '커뮤니티',
                             selected: _selectedIndex == 0,
                             onTap: () => _onItemTapped(0),
                           ),
-                          SizedBox(width: spacerWidth),
+                          // SizedBox(width: spacerWidth),
                           _NavIconButton(
-                            assetPath: 'assets/user-round-pen.svg',
-                            label: '프로필',
+                            assetPath: 'assets/cooking-book.svg',
+                            label: '요리하기',
+                            selected: _selectedIndex == 1,
+                            onTap: () => _onItemTapped(1),
+                          ),
+                          // SizedBox(width: spacerWidth),
+                          _NavIconButton(
+                            assetPath: 'assets/note2.svg',
+                            label: '기록',
                             selected: _selectedIndex == 2,
                             onTap: () => _onItemTapped(2),
+                          ),
+                          // SizedBox(width: spacerWidth),
+                          _NavIconButton(
+                            assetPath: 'assets/profile.svg',
+                            label: '프로필',
+                            selected: _selectedIndex == 3,
+                            onTap: () => _onItemTapped(3),
                           ),
                         ],
                       ),
@@ -127,28 +150,28 @@ class _HomePageState extends State<HomePage> {
       ),
 
       // ✅ FloatingActionButton 유지
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: SizedBox(
-        width: kFabSize,
-        height: kFabSize,
-        child: FloatingActionButton(
-          backgroundColor: theme.colorScheme.onSurface,
-          onPressed: _openCook,
-          tooltip: '요리하기',
-          elevation: 5,
-          shape: CircleBorder(
-            side: BorderSide(
-              color: theme.colorScheme.surface,
-              width: 5.0,
-            ),
-          ),
-          child: Icon(
-            Icons.restaurant_menu_rounded,
-            size: 40,
-            color: theme.colorScheme.surface,
-          ),
-        ),
-      ),
+      // floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      // floatingActionButton: SizedBox(
+      //   width: kFabSize,
+      //   height: kFabSize,
+      //   child: FloatingActionButton(
+      //     backgroundColor: theme.colorScheme.onSurface,
+      //     onPressed: _openCook,
+      //     tooltip: '요리하기',
+      //     elevation: 5,
+      //     shape: CircleBorder(
+      //       side: BorderSide(
+      //         color: theme.colorScheme.surface,
+      //         width: 5.0,
+      //       ),
+      //     ),
+      //     child: Icon(
+      //       Icons.restaurant_menu_rounded,
+      //       size: 40,
+      //       color: theme.colorScheme.surface,
+      //     ),
+      //   ),
+      // ),
     );
   }
 
@@ -178,25 +201,28 @@ class _NavIconButton extends StatelessWidget {
         duration: const Duration(milliseconds: 150),
         scale: selected ? 1.2 : 1.0,
         child: Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.all(0.0),
           child: Container(
-            decoration: BoxDecoration(
-              border: Border(
-                bottom: BorderSide(
-                  color: selected
-                      ? theme.colorScheme.onSurface
-                      : Colors.transparent,
-                  width: 2,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SvgPicture.asset(
+                      assetPath,
+                      height: 25,
+                      colorFilter: ColorFilter.mode(
+                        selected ? theme.colorScheme.onSurface : const Color.fromARGB(198, 255, 255, 255),
+                        BlendMode.srcIn,
+                      ),
+                    ),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: selected ? theme.colorScheme.onSurface : const Color.fromARGB(198, 255, 255, 255),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-            ),
-            child: SvgPicture.asset(
-              assetPath,
-              height: 28,
-              colorFilter: ColorFilter.mode(
-                selected ? theme.colorScheme.onSurface : Colors.white54,
-                BlendMode.srcIn,
-              ),
+              ],
             ),
           )
         ),
