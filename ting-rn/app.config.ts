@@ -43,13 +43,28 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 
   plugins: [
     'expo-router',
-    '@react-native-firebase/app',
+    [
+      '@react-native-firebase/app',
+      {
+        ios: {
+          useModularHeaders: true,
+        },
+      },
+    ],
     '@react-native-firebase/auth',
     'expo-secure-store',
     [
       'expo-font',
       {
         fonts: [],
+      },
+    ],
+    [
+      'expo-build-properties',
+      {
+        ios: {
+          useFrameworks: 'static',
+        },
       },
     ],
   ],
