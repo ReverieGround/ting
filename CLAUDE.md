@@ -4,175 +4,149 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-VibeYum (브랜드명: T!ng) is a Korean social food community Flutter application that allows users to share food experiences, recipes, and connect with others who share their love for food. The app uses Firebase for backend services (Authentication, Firestore, Storage) and supports multiple social login providers (Google, Facebook, Kakao, Naver).
+T!ng (VibeYum) is a Korean social food community mobile app built with React Native (Expo). Users share food experiences, recipes, and connect with others. The app uses Firebase for backend services (Authentication, Firestore, Storage) and Google Sign-In for authentication.
+
+- **Bundle ID**: `com.reverieground.ting`
+- **Firebase Project**: `vibeyum-alpha`
+- **Branch**: `project/react-native-migration`
+
+## Tech Stack
+
+- Expo SDK 54, React 19.1, React Native 0.81.5
+- TypeScript (strict mode)
+- Expo Router v6 (file-based routing)
+- Zustand (auth state management)
+- React Query (server state / caching)
+- React Native Firebase (`@react-native-firebase/*` v23.8.6)
+- `@react-native-google-signin/google-signin` v16.1.1
+- `@shopify/flash-list` for performant lists
+- `expo-dev-client` (requires dev build, not Expo Go)
 
 ## Development Commands
 
-### Setup and Installation
 ```bash
+# All commands run from ting-rn/ directory
+# Requires Node 20 (see .nvmrc)
+nvm use 20
+
 # Install dependencies
-flutter pub get
+npm install
 
-# Check available devices
-flutter devices
+# Start Metro dev server (requires dev build)
+npx expo start --dev-client
+
+# EAS build (development — iOS simulator)
+npx eas build --platform ios --profile development
+
+# EAS build (production — TestFlight)
+npx eas build --platform ios --profile production
+
+# Submit to TestFlight
+npx eas submit --platform ios --latest
+
+# Or use the deploy script
+./deploy-testflight.sh
 ```
 
-### Running the App
-```bash
-# Run on connected device/emulator
-flutter run
+## Project Structure
 
-# Run with forced onboarding (for testing)
-flutter run --dart-define=FORCE_ONBOARDING=true
 ```
-
-### Building
-```bash
-# Build for Android
-flutter build apk
-flutter build appbundle  # For Play Store
-
-# Build for iOS
-flutter build ios
-
-# Generate app icons
-flutter pub run flutter_launcher_icons
-```
-
-### Code Generation
-```bash
-# Clean and rebuild
-flutter clean
-flutter pub get
+ting-rn/
+├── app/                          # Expo Router routes
+│   ├── _layout.tsx               # Root layout (auth redirect, providers)
+│   ├── index.tsx                 # Splash / loading spinner
+│   ├── (auth)/
+│   │   └── login.tsx             # Google Sign-In
+│   ├── (onboarding)/
+│   │   └── setup.tsx             # Profile setup (name, country, image)
+│   └── (tabs)/
+│       ├── _layout.tsx           # Tab bar (커뮤니티, 요리하기, 기록, 프로필)
+│       ├── feed/                 # Feed list + post detail
+│       ├── recipes/              # Recipe list, detail, edit
+│       ├── create/               # Post creation + confirm
+│       ├── profile/              # My profile + other user profile
+│       └── users/                # Follower/following lists
+├── src/
+│   ├── components/               # Reusable UI components
+│   │   ├── common/               # ProfileAvatar, Tag, TimeAgoText
+│   │   ├── create/               # CategoryChips, ReviewChips, DatePicker, etc.
+│   │   ├── feed/                 # FeedCard, Head, Content, FeedImages, StatIcons
+│   │   └── profile/              # ProfileHeader, FollowButton, YumTab, GuestBookTab
+│   ├── hooks/                    # Custom hooks (useAuth, useFeed, useFollow, useLike, etc.)
+│   ├── services/                 # Firebase service layer
+│   │   ├── authService.ts        # Auth, Google Sign-In, token management
+│   │   ├── feedService.ts        # Feed queries (realtime, hot)
+│   │   ├── postService.ts        # Post CRUD with visibility control
+│   │   ├── userService.ts        # User profile management
+│   │   ├── followService.ts      # Follow/unfollow
+│   │   ├── recipeService.ts      # Recipe data from JSON asset
+│   │   ├── storageService.ts     # Firebase Storage uploads
+│   │   ├── guestBookService.ts   # Guest book / sticky notes
+│   │   ├── profileService.ts     # Profile data fetching
+│   │   └── gptService.ts         # OpenAI integration for recipe editing
+│   ├── stores/
+│   │   └── authStore.ts          # Zustand store (AppStatus state machine)
+│   ├── theme/
+│   │   └── colors.ts             # Color palette, spacing, radius constants
+│   ├── types/                    # TypeScript interfaces (user, post, feed, recipe, guestbook)
+│   └── utils/                    # Helpers (chunk, formatNumber, formatTimestamp, koreanGrammar)
+├── assets/                       # App icons, splash image
+├── plugins/
+│   └── withFirebaseFixes.js      # Custom Expo config plugin for Firebase iOS build
+├── app.config.ts                 # Expo config
+├── eas.json                      # EAS Build profiles
+├── GoogleService-Info.plist      # Firebase iOS config
+└── deploy-testflight.sh          # TestFlight deploy script
 ```
 
 ## Architecture
 
-### App State Machine
-The app uses a custom state machine (`AppState` in `lib/main.dart`) to manage authentication and onboarding flow:
-- `initializing`: App is bootstrapping and checking auth state
-- `unauthenticated`: User needs to login
-- `needsOnboarding`: User is authenticated but needs to complete profile setup
-- `authenticated`: User is fully authenticated and onboarded
+### Auth State Machine (Zustand)
+Managed in `src/stores/authStore.ts` with four states:
+- `initializing` → App bootstrapping, checking Firebase auth
+- `unauthenticated` → No user, show login
+- `needsOnboarding` → Authenticated but missing profile (user_name / country_code)
+- `authenticated` → Fully set up, show tabs
 
-### Routing
-Uses `go_router` (v16.2.1) with state-based redirection. Routes are defined in `buildRouter()` in `lib/main.dart`:
-- `/splash`: Initial loading screen
-- `/login`: Authentication page with social login options
-- `/onboarding`: Profile setup for new users
-- `/home`: Main app (feed, profile, recipe browsing)
+### Routing & Auth Redirect
+Centralized in `app/_layout.tsx` using `useSegments()` + `useRouter()`:
+- Watches `status` from authStore
+- Redirects to `/(auth)/login`, `/(onboarding)/setup`, or `/(tabs)/feed` based on status
+- Each tab subdirectory has its own `_layout.tsx` with a Stack navigator for nested routes
 
-The router listens to `AppState` changes and automatically redirects users based on their authentication status.
+### Service Layer
+All Firebase logic is in `src/services/`. Services interact directly with `@react-native-firebase/*` modules.
 
-### Service Layer Pattern
-All Firebase and business logic is isolated in service classes (`lib/services/`):
+**Important**: RN Firebase `.exists` is a method `.exists()`, not a property (unlike web Firebase SDK).
 
-- **AuthService**: Manages Firebase Auth, social login (Google, Facebook, Kakao, Naver), token storage via FlutterSecureStorage
-- **FeedService**: Fetches posts for the feed (realtime and hot feeds)
-- **PostService**: CRUD operations for posts with visibility control (PUBLIC, FOLLOWER, PRIVATE)
-- **UserService**: User profile management and updates
-- **FollowService**: Follow/unfollow relationships
-- **RecipeService**: Loads and searches recipes from JSON asset
-- **StorageService**: Firebase Storage uploads (images)
-- **ProfileService**: User profile data fetching
-- **GuestBookService**: Guest book/message board features
-
-### Data Models (`lib/models/`)
-Key models with Firebase Firestore integration:
-- **PostData**: User posts with visibility, archiving, categories
-- **FeedData**: Composite model combining PostData + UserData + engagement metrics (likes, comments). Uses async factory pattern (`FeedData.create()`)
-- **UserData**: User profiles with country info, bio, profile images
-- **Recipe**: Recipe data loaded from `assets/recipe_dict_filtered.json`
-- **ProfileInfo/ProfileData**: User profile views and metadata
-
-### UI Structure
-```
-lib/
-├── main.dart              # Entry point, AppState, routing
-├── home/HomePage.dart     # Bottom nav with FAB (Feed, Profile, Recipes)
-├── feeds/                 # Feed/timeline UI
-│   └── widgets/           # Feed card components (Head, Content, Images, Tags, Icons)
-├── profile/               # User profile pages
-│   └── widgets/           # Profile components (Header, FollowButton)
-├── posts/                 # Individual post detail pages
-├── create/                # Post creation flow
-├── recipe/                # Recipe browsing and detail pages
-├── users/                 # User-related pages
-├── nearby/                # Location-based feed (未使用?)
-├── login/                 # Authentication pages
-├── onboarding/            # New user setup
-└── theme/AppTheme.dart    # Centralized theme (dark mode focused)
-```
-
-### Theme System
-Centralized theme in `lib/theme/AppTheme.dart`:
-- Currently uses light theme forced mode (dark color scheme with light brightness setting)
-- Primary color: `#EAECEF` (off-white)
-- Background: `#0F1115` (dark)
-- Uses `ColorScheme.fromSeed()` for consistent color derivation
+### Theme
+Dark mode focused. Colors defined in `src/theme/colors.ts`:
+- Background: `#0F1115`
+- Primary/text: `#EAECEF`
+- Derived colors use `rgba()` with opacity helpers
 
 ## Firebase Integration
 
-### Collections Structure
-- `users/`: User profiles (user_id, user_name, country_code, bio, profile_image, provider, created_at)
-- `posts/`: User posts (user_id, title, content, image_urls, likes_count, comments_count, category, visibility, archived, created_at)
-- `follows/`: Follow relationships
-- Additional collections: comments, likes, recipes (referenced but not detailed in codebase)
+### Collections
+- `users/` — user_id, user_name, country_code, country_name, bio, profile_image, provider, created_at
+- `posts/` — user_id, title, content, image_urls, likes_count, comments_count, category, visibility, archived, created_at
+- `follows/` — follower/following relationships
+- `comments/`, `likes/`, `guest_notes/`
 
-### Authentication Flow
-1. User selects social login provider on LoginPage
-2. AuthService handles OAuth flow and creates Firebase user
-3. AppState checks if user document exists in Firestore
-4. If missing user_name or country_code, redirect to OnboardingPage
-5. OnboardingPage calls `AuthService.registerUser()` to create user document
-6. AppState transitions to `authenticated` status
+### Authentication
+1. User taps Google Sign-In on login page
+2. `authService.signInWithGoogle()` handles OAuth flow → Firebase credential
+3. authStore `bootstrap()` checks Firestore user doc
+4. Missing user_name/country_code → redirect to onboarding
+5. Onboarding calls `authService.registerUser()` → creates Firestore doc
+6. Status → `authenticated`
 
-### Token Management
-- Firebase ID tokens stored in FlutterSecureStorage (key: `auth_token`)
-- Tokens refreshed and validated via `saveIdToken()` and `verifyStoredIdToken()`
-- Login history tracked via `has_logged_in_before` flag
+### Post Visibility
+Three levels: `PUBLIC`, `FOLLOWER`, `PRIVATE`. Enforced in `postService.fetchUserPosts()` based on viewer relationship.
 
-## Key Technical Details
+## Notes
 
-### Post Visibility System
-Posts have three visibility levels enforced in `PostService.fetchUserPosts()`:
-- `PUBLIC`: Visible to everyone
-- `FOLLOWER`: Visible to followers only
-- `PRIVATE`: Visible to post owner only
-
-The service checks viewer's relationship (owner/follower) and filters posts via Firestore `whereIn` query.
-
-### Image Handling
-- Image uploads via `StorageService` to Firebase Storage
-- Local caching with `cached_network_image` package
-- Image cropping with `image_cropper` before upload
-- EXIF data handling for proper orientation
-
-### Korean Localization
-- App supports Korean (ko) and English (en) locales
-- Uses `flutter_localizations` for Material/Cupertino widgets
-- Most UI text is hardcoded in Korean (not using intl l10n system)
-
-### Platform-Specific Code
-- Desktop platforms (Windows, Linux, macOS) use `sqflite_common_ffi` for local database
-- iOS uses Kakao SDK and Naver Login native integration
-- Biometric auth via `local_auth` for faster re-login
-
-## Common Patterns
-
-### Async Data Loading
-Most services return `Future<List<Model>>` or `Future<Model?>`. UI widgets should use `FutureBuilder` or state management to handle loading states.
-
-### Error Handling
-Services use `debugPrint()` for errors and typically return `null` or empty lists on failure. Consider adding proper error propagation for production.
-
-### State Management
-Currently uses basic `StatefulWidget` with `setState()`. No dedicated state management library (Provider, Riverpod, Bloc). The `PageStorageBucket` is used in HomePage to preserve scroll positions across tab switches.
-
-## Notes for Development
-
-- Recipe data is loaded from static JSON asset (`assets/recipe_dict_filtered.json`), not from Firestore
-- Some features reference unused pages (e.g., `nearby/NearbyPage.dart`)
-- Social login for Kakao/Naver requires backend to exchange tokens for Firebase Custom Tokens (not implemented in this codebase)
-- Assets directory is gitignored - ensure assets exist locally before running
-- No test directory or test coverage currently in the project
+- Recipe data loaded from static JSON asset, not Firestore
+- Google Sign-In requires both `webClientId` (web type) and `iosClientId` (iOS type) in configuration
+- No test coverage currently
+- Korean UI text is hardcoded (no i18n system)
