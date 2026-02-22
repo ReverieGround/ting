@@ -10,7 +10,7 @@ async function subcolCount(uid: string, sub: string): Promise<number> {
     .collection(sub)
     .count()
     .get();
-  return (agg as any).data().count ?? 0;
+  return (agg as any)?.data?.()?.count ?? 0;
 }
 
 async function isFollowingCheck(
@@ -48,7 +48,7 @@ async function postCount(
       .where('visibility', 'in', visibilities)
       .count()
       .get();
-    return (agg as any).data().count ?? 0;
+    return (agg as any)?.data?.()?.count ?? 0;
   } catch {
     return 0;
   }

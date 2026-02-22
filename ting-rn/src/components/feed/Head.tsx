@@ -37,7 +37,7 @@ export function Head({
         style={styles.left}
         onPress={() => router.push(`/(tabs)/profile/${userId}`)}
       >
-        <ProfileAvatar profileUrl={profileImageUrl} size={32} />
+        <ProfileAvatar profileUrl={profileImageUrl} size={40} />
         <View style={styles.nameBlock}>
           <Text style={[styles.userName, { color: fontColor }]} numberOfLines={1}>
             {userName}
@@ -53,12 +53,12 @@ export function Head({
       <View style={styles.right}>
         <TimeAgoText
           createdAt={createdAt}
-          fontSize={11}
-          color={overlay ? 'rgba(255,255,255,0.8)' : '#999'}
+          fontSize={12}
+          color={overlay ? 'rgba(255,255,255,0.8)' : '#9E9E9E'}
         />
         {isMine && onEdit && (
           <Pressable onPress={onEdit} hitSlop={8}>
-            <Ionicons name="ellipsis-vertical" size={18} color={fontColor} />
+            <Ionicons name="ellipsis-vertical" size={20} color="#9E9E9E" />
           </Pressable>
         )}
       </View>
@@ -71,8 +71,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingLeft: 5,
+    paddingRight: 5,
+    paddingTop: 10,
+    paddingBottom: 15,
   },
   overlay: {
     position: 'absolute',
@@ -85,7 +87,7 @@ const styles = StyleSheet.create({
   left: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 12,
     flex: 1,
   },
   nameBlock: {
@@ -93,11 +95,12 @@ const styles = StyleSheet.create({
   },
   userName: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '800',
+    letterSpacing: -0.5,
   },
   userTitle: {
-    fontSize: 11,
-    opacity: 0.7,
+    fontSize: 12,
+    fontWeight: '600',
   },
   right: {
     flexDirection: 'row',

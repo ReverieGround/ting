@@ -39,6 +39,39 @@ export interface Recipe {
   nutrition: Nutrition;
 }
 
+export function recipeToJson(recipe: Recipe): Record<string, unknown> {
+  return {
+    _id: recipe.id,
+    title: recipe.title,
+    food_category: recipe.foodCategory,
+    cooking_category: recipe.cookingCategory,
+    images: {
+      original_url: recipe.images.originalUrl,
+      local_path: recipe.images.localPath,
+    },
+    tags: recipe.tags,
+    tips: recipe.tips,
+    ingredients: recipe.ingredients.map((i) => ({
+      name: i.name,
+      quantity: i.quantity,
+    })),
+    methods: recipe.methods.map((m) => ({
+      describe: m.describe,
+      image: {
+        original_url: m.image.originalUrl,
+        local_path: m.image.localPath,
+      },
+    })),
+    nutrition: {
+      calories: recipe.nutrition.calories,
+      protein: recipe.nutrition.protein,
+      carbohydrates: recipe.nutrition.carbohydrates,
+      fat: recipe.nutrition.fat,
+      sodium: recipe.nutrition.sodium,
+    },
+  };
+}
+
 export function recipeFromJson(json: Record<string, unknown>): Recipe {
   const imgs = json.images as Record<string, string>;
   const nutr = json.nutrition as Record<string, string>;

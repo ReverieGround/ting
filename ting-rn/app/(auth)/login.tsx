@@ -1,17 +1,44 @@
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { useState } from 'react';
+import { View, Text, StyleSheet, Pressable, Alert, ActivityIndicator } from 'react-native';
 import { colors, spacing, radius } from '../../src/theme/colors';
+import { authService } from '../../src/services/authService';
 
 export default function LoginPage() {
+  const [loading, setLoading] = useState(false);
+
+  const handleGoogleSignIn = async () => {
+    setLoading(true);
+    try {
+      const ok = await authService.signInWithGoogle();
+      if (!ok) {
+        Alert.alert('로그인 실패', 'Google 로그인에 실패했습니다. 다시 시도해주세요.');
+      }
+    } catch {
+      Alert.alert('오류', '로그인 중 오류가 발생했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>T!ng</Text>
       <Text style={styles.subtitle}>소셜 푸드 커뮤니티</Text>
 
       <View style={styles.buttons}>
-        <Pressable style={[styles.button, styles.google]}>
-          <Text style={styles.buttonText}>Google로 계속하기</Text>
+        <Pressable
+          style={[styles.button, styles.google]}
+          onPress={handleGoogleSignIn}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color={colors.white} />
+          ) : (
+            <Text style={styles.buttonText}>Google로 계속하기</Text>
+          )}
         </Pressable>
 
+        {/* Facebook, Kakao, Naver — 추후 구현 예정
         <Pressable style={[styles.button, styles.facebook]}>
           <Text style={styles.buttonText}>Facebook으로 계속하기</Text>
         </Pressable>
@@ -27,6 +54,7 @@ export default function LoginPage() {
             Naver (준비중)
           </Text>
         </Pressable>
+        */}
       </View>
     </View>
   );
@@ -57,12 +85,13 @@ const styles = StyleSheet.create({
   },
   button: {
     paddingVertical: 14,
-    borderRadius: radius.md,
+    borderRadius: 8,
     alignItems: 'center',
+    borderWidth: 2,
+    borderColor: colors.divider,
+    backgroundColor: 'transparent',
   },
-  google: {
-    backgroundColor: '#4285F4',
-  },
+  google: {},
   facebook: {
     backgroundColor: '#1877F2',
   },

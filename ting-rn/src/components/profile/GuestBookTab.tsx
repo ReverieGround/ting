@@ -14,7 +14,7 @@ import { guestBookService } from '../../services/guestBookService';
 import { colors } from '../../theme/colors';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
-const COLUMNS = SCREEN_WIDTH > 400 ? 3 : 2;
+const COLUMNS = SCREEN_WIDTH > 520 ? 3 : 2;
 
 interface Props {
   userId: string;
@@ -81,9 +81,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   grid: {
-    padding: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
   },
   row: {
-    gap: 8,
+    gap: 12,
+    marginBottom: 12,
   },
 });

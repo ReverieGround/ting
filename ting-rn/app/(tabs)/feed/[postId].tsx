@@ -5,6 +5,7 @@ import {
   TextInput,
   Pressable,
   KeyboardAvoidingView,
+  Keyboard,
   Platform,
   FlatList,
   ActivityIndicator,
@@ -50,8 +51,8 @@ async function fetchSingleFeed(postId: string): Promise<FeedData | null> {
     post: postData,
     isPinned: false,
     isLikedByUser: likeDoc != null ? likeDoc.exists() : false,
-    numLikes: (likesAgg as any).data().count ?? 0,
-    numComments: (commentsAgg as any).data().count ?? 0,
+    numLikes: (likesAgg as any)?.data?.()?.count ?? 0,
+    numComments: (commentsAgg as any)?.data?.()?.count ?? 0,
   };
 }
 
@@ -61,21 +62,24 @@ export default function PostDetailPage() {
   const [text, setText] = useState('');
   const [posting, setPosting] = useState(false);
 
+  const safePostId = postId ?? '';
+
   const {
     data: feed,
     isLoading: feedLoading,
   } = useQuery({
-    queryKey: ['post', postId],
-    queryFn: () => fetchSingleFeed(postId!),
-    enabled: !!postId,
+    queryKey: ['post', safePostId],
+    queryFn: () => fetchSingleFeed(safePostId),
+    enabled: !!safePostId,
   });
 
   const { comments, loading: commentsLoading, addComment, deleteComment } =
-    useComments(postId!, 100);
+    useComments(safePostId, 100);
 
   const handleSend = useCallback(async () => {
     if (!text.trim() || posting) return;
     setPosting(true);
+    Keyboard.dismiss(); // matches Flutter FocusScope.unfocus()
     try {
       await addComment(text.trim());
       setText('');
@@ -86,7 +90,7 @@ export default function PostDetailPage() {
 
   const renderComment = useCallback(
     ({ item }: { item: Comment }) => (
-      <CommentTile comment={item} postId={postId!} onDelete={deleteComment} />
+      <CommentTile comment={item} postId={safePostId} onDelete={deleteComment} />
     ),
     [postId, deleteComment],
   );
@@ -214,7 +218,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     height: 40,
-    borderRadius: 20,
+    borderRadius: 50,
     backgroundColor: 'rgba(255,255,255,0.08)',
     paddingHorizontal: 16,
     color: colors.primary,

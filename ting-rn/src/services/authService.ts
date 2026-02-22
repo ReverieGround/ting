@@ -1,6 +1,7 @@
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 import * as SecureStore from 'expo-secure-store';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 const TOKEN_KEY = 'auth_token';
 const HAS_LOGGED_IN_KEY = 'has_logged_in_before';
@@ -76,7 +77,11 @@ export const authService = {
   },
 
   async signOut(): Promise<void> {
-    // TODO: sign out from Google/Facebook SDKs when integrated
+    try {
+      await GoogleSignin.signOut();
+    } catch {
+      // ignore if Google sign-out fails
+    }
     await auth().signOut();
     await SecureStore.deleteItemAsync(TOKEN_KEY);
   },
@@ -84,8 +89,27 @@ export const authService = {
   // --- Social providers (stubs — wire up in Phase 1) ---
 
   async signInWithGoogle(): Promise<boolean> {
-    // TODO: implement with @react-native-google-signin
-    return false;
+    try {
+      GoogleSignin.configure({
+        webClientId:
+          '1088275016090-h5uuerbcan6kmskqe0rudflke5c5a95h.apps.googleusercontent.com',
+        iosClientId:
+          '1088275016090-re9fu4ssqd2iti97kfmqjgti3k0hm2qm.apps.googleusercontent.com',
+      });
+      await GoogleSignin.hasPlayServices();
+      const response = await GoogleSignin.signIn();
+      const idToken = response.data?.idToken;
+      if (!idToken) return false;
+
+      const credential = auth.GoogleAuthProvider.credential(idToken);
+      await auth().signInWithCredential(credential);
+      await this.saveIdToken();
+      await this.markHasLoggedInBefore();
+      return true;
+    } catch (e) {
+      console.error('Google sign-in error:', e);
+      return false;
+    }
   },
 
   async signInWithFacebook(): Promise<boolean> {

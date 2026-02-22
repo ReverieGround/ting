@@ -1,4 +1,5 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { ProfileAvatar } from '../common/ProfileAvatar';
 import { StickyNote } from '../../types/guestbook';
 import { timeAgo } from '../../utils/formatTimestamp';
@@ -41,12 +42,16 @@ export function StickyNoteCard({
         { transform: [{ rotate: `${rotation}deg` }] },
       ]}
     >
-      {note.pinned && <Text style={styles.pin}>📌</Text>}
+      {note.pinned && (
+        <View style={styles.pin}>
+          <Ionicons name="pin" size={12} color="rgba(0,0,0,0.4)" />
+        </View>
+      )}
       <Text style={styles.text} numberOfLines={6}>
         {note.text}
       </Text>
       <View style={styles.footer}>
-        <ProfileAvatar profileUrl={note.authorAvatarUrl} size={18} />
+        <ProfileAvatar profileUrl={note.authorAvatarUrl} size={20} />
         <Text style={styles.author} numberOfLines={1}>
           {note.authorName}
         </Text>
@@ -58,25 +63,27 @@ export function StickyNoteCard({
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 4,
-    padding: 12,
+    borderRadius: 12,
+    paddingLeft: 14,
+    paddingRight: 14,
+    paddingTop: 18,
+    paddingBottom: 14,
     marginBottom: 8,
     shadowColor: '#000',
-    shadowOffset: { width: 1, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
     elevation: 3,
   },
   pin: {
     position: 'absolute',
-    top: 4,
-    right: 6,
-    fontSize: 12,
+    top: 6,
+    right: 8,
   },
   text: {
-    fontSize: 15,
-    color: '#333',
-    lineHeight: 22,
+    fontSize: 20,
+    color: 'rgba(0,0,0,0.87)',
+    lineHeight: 24,
     // TODO: use NanumPenScript font when loaded
   },
   footer: {
@@ -86,12 +93,12 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   author: {
-    fontSize: 11,
-    color: '#555',
+    fontSize: 12,
+    color: 'rgba(0,0,0,0.6)',
     flex: 1,
   },
   time: {
-    fontSize: 10,
-    color: '#999',
+    fontSize: 11,
+    color: 'rgba(0,0,0,0.45)',
   },
 });

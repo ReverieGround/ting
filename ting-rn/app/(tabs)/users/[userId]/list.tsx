@@ -19,9 +19,9 @@ import { ProfileAvatar } from '../../../../src/components/common/ProfileAvatar';
 const TABS = ['팔로워', '팔로잉', '차단'] as const;
 const TAB_KEYS = ['followers', 'following', 'blocks'] as const;
 const COLUMNS = 3;
-const GAP = 12;
+const GAP = 6;
 const SCREEN_WIDTH = Dimensions.get('window').width;
-const ITEM_WIDTH = (SCREEN_WIDTH - spacing.md * 2 - GAP * (COLUMNS - 1)) / COLUMNS;
+const ITEM_WIDTH = (SCREEN_WIDTH - 24 - GAP * (COLUMNS - 1)) / COLUMNS;
 
 export default function UserListPage() {
   const { userId } = useLocalSearchParams<{ userId: string }>();
@@ -45,7 +45,7 @@ export default function UserListPage() {
       }
       setLoading(true);
       try {
-        const result = await userService.fetchUserList(userId!, key);
+        const result = await userService.fetchUserList(userId ?? '', key);
         setUsers(result);
         setCache((prev) => ({ ...prev, [key]: result }));
       } catch {
@@ -67,7 +67,7 @@ export default function UserListPage() {
         style={styles.userCard}
         onPress={() => router.push(`/(tabs)/profile/${item.userId}`)}
       >
-        <ProfileAvatar profileUrl={item.profileImage} size={56} />
+        <ProfileAvatar profileUrl={item.profileImage} size={64} />
         <Text style={styles.cardName} numberOfLines={1}>
           {item.userName}
         </Text>
@@ -114,7 +114,7 @@ export default function UserListPage() {
           numColumns={COLUMNS}
           columnWrapperStyle={styles.row}
           contentContainerStyle={{
-            padding: spacing.md,
+            padding: 12,
             paddingBottom: insets.bottom + 100,
           }}
         />
@@ -170,14 +170,14 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   cardName: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '600',
     color: colors.primary,
     textAlign: 'center',
   },
   cardTitle: {
-    fontSize: 11,
-    color: colors.hint,
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.54)',
     textAlign: 'center',
   },
 });

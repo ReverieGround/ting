@@ -29,7 +29,8 @@ export function ProfileAvatar({ profileUrl, size = 40 }: Props) {
 const styles = StyleSheet.create({
   container: {
     borderWidth: 0.5,
-    borderColor: colors.border,
+    borderColor: '#000000',
+    backgroundColor: '#FFFFFF',
     overflow: 'hidden',
   },
 });

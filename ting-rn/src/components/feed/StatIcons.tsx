@@ -20,7 +20,7 @@ export function StatIcons({
   likesCount,
   commentsCount,
   fontColor = colors.primary,
-  iconSize = 22,
+  iconSize = 20,
   fontSize = 14,
 }: Props) {
   const { isLiked, toggle } = useLike(postId, postOwnerId);
@@ -54,14 +54,14 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    gap: 16,
+    paddingHorizontal: 4,
+    paddingVertical: 4,
+    gap: 12,
   },
   iconRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 6,
   },
   count: {
     fontWeight: '500',

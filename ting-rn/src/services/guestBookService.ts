@@ -8,16 +8,17 @@ function col(targetUserId: string) {
     .collection('guestbook');
 }
 
-function fromDoc(d: any): StickyNote {
-  const m = d.data();
+function fromDoc(d: any): StickyNote | null {
+  const m = d?.data?.();
+  if (!m) return null;
   return {
-    id: m.id as string,
-    authorId: m.authorId as string,
+    id: (m.id as string) ?? d.id,
+    authorId: (m.authorId as string) ?? '',
     authorName: (m.authorName as string) ?? '',
     authorAvatarUrl: (m.authorAvatarUrl as string) ?? '',
     createdAt: m.createdAt?.toDate?.() ?? new Date(),
     text: (m.text as string) ?? '',
-    color: m.color as number,
+    color: (m.color as number) ?? 0,
     pinned: (m.pinned as boolean) ?? false,
   };
 }

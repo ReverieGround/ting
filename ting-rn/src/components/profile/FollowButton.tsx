@@ -42,15 +42,15 @@ export function FollowButton({ targetUid, width = 343, height = 40 }: Props) {
 
 const styles = StyleSheet.create({
   button: {
-    borderRadius: 8,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
     alignSelf: 'center',
   },
   following: {
-    backgroundColor: 'transparent',
+    backgroundColor: '#000000',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.primary,
   },
   notFollowing: {
     backgroundColor: colors.primary,
@@ -62,6 +62,6 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '700',
   },
 });

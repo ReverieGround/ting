@@ -33,8 +33,8 @@ async function buildFeedData(post: PostData): Promise<FeedData> {
     post,
     isPinned: pinDoc != null ? pinDoc.exists() : false,
     isLikedByUser: likeDoc != null ? likeDoc.exists() : false,
-    numLikes: (likesCount as any).data().count ?? 0,
-    numComments: (commentsCount as any).data().count ?? 0,
+    numLikes: (likesCount as any)?.data?.()?.count ?? 0,
+    numComments: (commentsCount as any)?.data?.()?.count ?? 0,
   };
 }
 

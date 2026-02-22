@@ -128,7 +128,7 @@ export const followService = {
       .collection('followers')
       .count()
       .get();
-    return (agg as any).data().count ?? 0;
+    return (agg as any)?.data?.()?.count ?? 0;
   },
 
   async followingCount(userId: string): Promise<number> {
@@ -138,7 +138,7 @@ export const followService = {
       .collection('following')
       .count()
       .get();
-    return (agg as any).data().count ?? 0;
+    return (agg as any)?.data?.()?.count ?? 0;
   },
 
   /** Returns a Firestore ref for real-time isFollowing check */

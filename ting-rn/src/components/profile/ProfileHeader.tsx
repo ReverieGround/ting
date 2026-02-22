@@ -34,7 +34,7 @@ export function ProfileHeader({ profile, isOwner }: Props) {
     <View style={styles.container}>
       {/* Avatar + Name */}
       <View style={styles.top}>
-        <ProfileAvatar profileUrl={profile.profileImage} size={64} />
+        <ProfileAvatar profileUrl={profile.profileImage} size={45} />
         <View style={styles.nameBlock}>
           <Text style={styles.userName}>{profile.userName}</Text>
           {profile.userTitle ? (
@@ -73,32 +73,32 @@ export function ProfileHeader({ profile, isOwner }: Props) {
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
+    paddingVertical: 12,
   },
   top: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
+    gap: 12,
   },
   nameBlock: {
     flex: 1,
   },
   userName: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '700',
     color: colors.primary,
   },
   userTitle: {
-    fontSize: 13,
-    color: colors.hint,
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.7)',
     marginTop: 2,
   },
   statusBubble: {
     marginTop: 12,
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
   },
   statusText: {
     fontSize: 13,
@@ -118,8 +118,8 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   statValue: {
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: 17,
+    fontWeight: '400',
     color: colors.primary,
   },
   statLabel: {

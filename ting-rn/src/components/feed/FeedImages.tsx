@@ -47,7 +47,7 @@ export function FeedImages({
     ({ item }: { item: string }) => (
       <Image
         source={{ uri: item }}
-        style={{ width: SCREEN_WIDTH, height: imgHeight }}
+        style={{ width: SCREEN_WIDTH, height: imgHeight, borderRadius: 5 }}
         contentFit="cover"
         transition={200}
         recyclingKey={item}
@@ -63,7 +63,7 @@ export function FeedImages({
       {imageUrls.length === 1 ? (
         <Image
           source={{ uri: imageUrls[0] }}
-          style={{ width: SCREEN_WIDTH, height: imgHeight }}
+          style={{ width: SCREEN_WIDTH, height: imgHeight, borderRadius: 5 }}
           contentFit="cover"
           transition={200}
         />
@@ -111,8 +111,8 @@ export function FeedImages({
 const styles = StyleSheet.create({
   tagsOverlay: {
     position: 'absolute',
-    top: 8,
-    left: 8,
+    top: 10,
+    left: 6,
     flexDirection: 'row',
     gap: 6,
   },
@@ -127,9 +127,9 @@ const styles = StyleSheet.create({
   },
   dot: {
     width: 6,
-    height: 6,
+    height: 5,
     borderRadius: 3,
-    backgroundColor: 'rgba(255,255,255,0.4)',
+    backgroundColor: 'rgba(255,255,255,0.3)',
   },
   dotActive: {
     backgroundColor: '#fff',

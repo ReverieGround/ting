@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>1088275016090-ilhbipi5g51hg7aklkguhfe7gv7vb1af.apps.googleusercontent.com</string>
+	<string>1088275016090-re9fu4ssqd2iti97kfmqjgti3k0hm2qm.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.1088275016090-ilhbipi5g51hg7aklkguhfe7gv7vb1af</string>
+	<string>com.googleusercontent.apps.1088275016090-re9fu4ssqd2iti97kfmqjgti3k0hm2qm</string>
 	<key>API_KEY</key>
 	<string>AIzaSyDtxmKrW8EDL68bkxRBPlyfjX-jaGSy-wQ</string>
 	<key>GCM_SENDER_ID</key>
@@ -13,7 +13,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.example.vibeyum</string>
+	<string>com.reverieground.ting</string>
 	<key>PROJECT_ID</key>
 	<string>vibeyum-alpha</string>
 	<key>STORAGE_BUCKET</key>
@@ -29,6 +29,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:1088275016090:ios:450859fc262fe8aa017223</string>
+	<string>1:1088275016090:ios:a96d81c446f5c58e017223</string>
 </dict>
 </plist>
