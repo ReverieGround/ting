@@ -1,45 +1,93 @@
-# VibeYum 
+# T!ng
 
-#### "VibeYum: 당신의 치유 음식 커뮤니티"
+#### "T!ng: 소셜 푸드 커뮤니티"
 
+T!ng은 음식이라는 공통된 즐거움을 통해 사람들을 연결하는 소셜 푸드 커뮤니티 앱입니다. 맛있는 순간을 기록하고, 레시피를 탐색하며, AI 보조 요리 편집 기능으로 나만의 요리를 완성할 수 있습니다.
 
-VibeYum은 음식이라는 공통된 즐거움을 통해 사람들을 연결하기 위해 고안된 활기찬 소셜 플랫폼입니다. 맛있는 순간을 기념하고, 요리 영감을 제공하며, 전반적인 웰빙을 증진하는 지원적인 커뮤니티를 목표로 합니다. 사용자들은 자신이 좋아하는 레시피를 공유하고, 새로운 맛을 탐험하며, 좋은 음식에 대한 공동의 사랑에서 위안을 찾을 수 있습니다.
+## 기술 스택
+
+- **React Native** 0.81 + **Expo SDK 54**
+- **TypeScript** (strict mode)
+- **Expo Router v6** (파일 기반 라우팅)
+- **Zustand** (인증 상태) + **React Query v5** (서버 상태)
+- **React Native Firebase** v23 (Auth, Firestore, Storage)
+- **OpenAI GPT-4o-mini** (레시피 AI 편집)
 
 ## 시작하기
-VibeYum을 로컬에서 설정하고 실행하려면 다음의 간단한 단계를 따르세요.
 
-## 전제 조건
-Flutter SDK: Flutter가 설치되어 있는지 확인하세요. 설치되어 있지 않다면, 운영 체제에 맞는 공식 설치 가이드를 따르세요: Flutter 설치 가이드
+### 전제 조건
 
-Git: 저장소를 복제하려면 Git이 필요합니다.
+- **Node.js 20** (`nvm use 20`)
+- **EAS CLI** (`npm install -g eas-cli`)
+- Expo 계정 + EAS 프로젝트 설정
+- Firebase 프로젝트 (`vibeyum-alpha`) + `GoogleService-Info.plist`
 
-## 설치
+### 설치
 
-### 저장소 복제:
-```
-git clone https://github.com/your-username/VibeYum.git
-cd VibeYum
-```
-
-(https://github.com/your-username/VibeYum.git을 실제 저장소 URL로 대체하세요)
-
-### 종속성 설치:
-프로젝트 디렉토리로 이동하여 다음을 실행하세요:
-```
-flutter pub get
+```bash
+git clone https://github.com/ReverieGround/ting.git
+cd ting/ting-rn
+nvm use 20
+npm install
 ```
 
-### 애플리케이션 실행
-기기 연결 또는 에뮬레이터 시작:
-Android 에뮬레이터, iOS 시뮬레이터 또는 Flutter가 인식하는 실제 기기가 연결되어 있는지 확인하세요. 다음 명령어로 연결된 기기를 확인할 수 있습니다:
-```
-flutter devices
+### 개발 (시뮬레이터)
+
+```bash
+# dev 빌드 생성 (최초 1회)
+npx eas build --platform ios --profile development
+
+# Metro 번들러 + 앱 실행
+npx expo start --dev-client
+
+# 또는 원스텝 스크립트
+./run-simulator.sh
 ```
 
-### 앱 실행:
-기기가 준비되면 다음 명령어를 사용하여 애플리케이션을 실행하세요:
-```
-flutter run
+### TestFlight 배포
+
+```bash
+./deploy-testflight.sh
 ```
 
-이 명령은 선택한 기기 또는 에뮬레이터에서 VibeYum 애플리케이션을 실행합니다.
+## 프로젝트 구조
+
+```
+ting-rn/
+├── app/                # Expo Router 라우트
+│   ├── (auth)/         #   로그인
+│   ├── (onboarding)/   #   프로필 설정
+│   └── (tabs)/         #   메인 탭 (피드, 레시피, 기록, 프로필)
+├── src/
+│   ├── components/     # UI 컴포넌트
+│   ├── hooks/          # 커스텀 훅
+│   ├── services/       # Firebase 서비스 레이어
+│   ├── stores/         # Zustand 스토어
+│   ├── theme/          # 색상, 간격, 라디우스
+│   ├── types/          # TypeScript 인터페이스
+│   └── utils/          # 유틸리티
+├── assets/             # 앱 아이콘, 스플래시
+└── plugins/            # Expo 커스텀 플러그인
+```
+
+## 문서
+
+자세한 문서는 [`docs/`](./docs) 디렉토리를 참조하세요:
+
+- [**FEATURES.md**](./docs/FEATURES.md) — 기능 명세서
+- [**FE_ARCH.md**](./docs/FE_ARCH.md) — 프론트엔드 아키텍처
+- [**BE_ARCH.md**](./docs/BE_ARCH.md) — 백엔드 (Firebase) 아키텍처
+
+## 주요 기능
+
+| 기능 | 설명 |
+|---|---|
+| 소셜 피드 | 전체/Hot/Wack/Personal 피드, 좋아요, 댓글 |
+| 게시물 작성 | 이미지, 카테고리, 리뷰, 공개 범위 설정 |
+| 레시피 탐색 | 레시피 목록, 상세, 영양 정보 |
+| AI 요리 편집 | 음성/텍스트 입력 → GPT로 레시피 수정 |
+| 프로필 | 팔로우/팔로잉, 방명록, 게시물 핀 |
+
+---
+
+Created by **ReverieGround**
