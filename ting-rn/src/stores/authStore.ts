@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import auth, { FirebaseAuthTypes } from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
+import { authService } from '../services/authService';
 
 export type AppStatus =
   | 'initializing'
@@ -51,7 +52,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   setStatus: (status) => set({ status }),
 
   signOut: async () => {
-    await auth().signOut();
+    await authService.signOut();
     set({ status: 'unauthenticated', user: null, userId: null });
   },
 }));
